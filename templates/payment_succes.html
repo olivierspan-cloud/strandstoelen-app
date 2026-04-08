@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Betaling geslaagd – ZonneStrand{% endblock %}
+
+{% block content %}
+<div class="success-scene">
+    <div class="success-card">
+        <div class="success-anim">
+            <div class="success-circle">
+                <span class="success-check">✓</span>
+            </div>
+        </div>
+        <h1 class="success-title">Betaling geslaagd!</h1>
+        <p class="success-sub">Jouw strandstoel is gereserveerd. Geniet van je dag! ☀️</p>
+
+        <div class="success-receipt">
+            <div class="receipt-header">
+                <strong>🏖 ZonneStrand Verhuur</strong>
+                <span>Betalingsbewijs</span>
+            </div>
+            <div class="receipt-rows">
+                <div class="receipt-row">
+                    <span>Stoel</span>
+                    <strong>#{{ chair_id }}</strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Tijdslot</span>
+                    <strong>{{ slot }}</strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Bedrag</span>
+                    <strong>€{{ "%.2f"|format(price) }}</strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Kaart eindigend op</span>
+                    <strong>•••• {{ card_last4 }}</strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Status</span>
+                    <strong class="receipt-status">✓ Goedgekeurd</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="success-actions">
+            <a href="/" class="btn btn-primary btn-lg">Terug naar overzicht</a>
+        </div>
+        <p class="success-note">
+            Dit is een nep-betaling voor demonstratiedoeleinden. Geen echte transactie heeft plaatsgevonden.
+        </p>
+    </div>
+</div>
+{% endblock %}

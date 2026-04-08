@@ -1,48 +1,41 @@
 <!DOCTYPE html>
 <html lang="nl" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inloggen – StrandStoelen</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inloggen – ZonneStrand</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="auth-page">
+<body class="auth-body">
 <div class="ocean-bg" aria-hidden="true">
-    <div class="wave wave1"></div><div class="wave wave2"></div><div class="wave wave3"></div>
+    <div class="wave w1"></div><div class="wave w2"></div><div class="wave w3"></div>
 </div>
-
-<div class="auth-wrapper">
+<div class="auth-scene">
     <div class="auth-card">
-        <div class="auth-header">
-            <div class="auth-icon">🏖️</div>
-            <h1 class="auth-title">StrandStoelen<span class="brand-accent">NL</span></h1>
-            <p class="auth-subtitle">Verhuur systeem · Seizoen 2025</p>
+        <div class="auth-card-top">
+            <div class="auth-emblem">🏖</div>
+            <h1 class="auth-title">ZonneStrand<span class="brand-accent"> Verhuur</span></h1>
+            <p class="auth-sub">Welkom terug — log in om te beginnen</p>
         </div>
-
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}{% for cat, msg in messages %}
-            <div class="inline-alert alert-{{ cat }}">{{ msg }}</div>
-            {% endfor %}{% endif %}
+          {% if messages %}{% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }}">{{ msg }}</div>
+          {% endfor %}{% endif %}
         {% endwith %}
-
         <form method="POST" class="auth-form">
-            <div class="form-group">
-                <label for="username">Gebruikersnaam</label>
-                <input type="text" id="username" name="username" placeholder="Jouw gebruikersnaam" required autofocus>
+            <div class="field-group">
+                <label>Gebruikersnaam</label>
+                <input type="text" name="username" placeholder="Jouw naam" required autofocus>
             </div>
-            <div class="form-group">
-                <label for="password">Wachtwoord</label>
-                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            <div class="field-group">
+                <label>Wachtwoord</label>
+                <input type="password" name="password" placeholder="••••••••" required>
             </div>
-            <button type="submit" class="btn btn-primary btn-full">Inloggen →</button>
+            <button type="submit" class="btn btn-primary btn-full btn-lg">Inloggen →</button>
         </form>
-
-        <p class="auth-switch">Nog geen account? <a href="/register">Registreren</a></p>
+        <p class="auth-footer-link">Nog geen account? <a href="/register">Registreer gratis</a></p>
     </div>
 </div>
 <script src="/static/script.js"></script>
-</body>
-</html>
+</body></html>

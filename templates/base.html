@@ -3,92 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}StrandStoelen Verhuur{% endblock %}</title>
+    <title>{% block title %}ZonneStrand Verhuur{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
+    {% block head %}{% endblock %}
 </head>
 <body>
-
-<!-- Ocean waves (light mode only) -->
+<div class="page-grain" aria-hidden="true"></div>
 <div class="ocean-bg" aria-hidden="true">
-    <div class="wave wave1"></div>
-    <div class="wave wave2"></div>
-    <div class="wave wave3"></div>
+    <div class="wave w1"></div><div class="wave w2"></div><div class="wave w3"></div>
 </div>
 
-<!-- ── NAVBAR ── -->
-<nav class="navbar">
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar" id="navbar">
     <a href="/" class="nav-brand">
-        <span class="brand-icon">🏖️</span>
-        <span class="brand-name">StrandStoelen<span class="brand-accent">NL</span></span>
+        <svg class="brand-logo" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="18" cy="18" r="17" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 24 C12 16 24 16 28 24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M18 10 L18 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M12 14 L24 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="brand-text">ZonneStrand<span class="brand-accent"> Verhuur</span></span>
     </a>
 
-    <!-- Hamburger for mobile -->
-    <button class="nav-hamburger" id="nav-toggle" aria-label="Menu openen">
+    <button class="nav-hamburger" id="nav-toggle" aria-label="Menu">
         <span></span><span></span><span></span>
     </button>
 
-    <div class="nav-links" id="nav-links">
-        <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">🪑 Overzicht</a>
+    <div class="nav-menu" id="nav-menu">
+        <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Stoelen</a>
         {% if session.get('role') == 'admin' %}
-        <a href="/beheer" class="nav-link {% if request.path == '/beheer' %}active{% endif %}">📊 Beheer</a>
+        <a href="/beheer" class="nav-link {% if request.path == '/beheer' %}active{% endif %}">Dashboard</a>
         {% endif %}
 
-        <div class="nav-right">
-            <!-- Dark mode toggle -->
-            <button class="dark-toggle" id="dark-toggle" aria-label="Dark mode">
-                <span class="icon-sun">☀️</span>
-                <span class="icon-moon">🌙</span>
-            </button>
+        <div class="nav-divider"></div>
 
-            {% if session.get('user') %}
-            <span class="user-badge {{ session.get('role') }}">
-                {{ '👑' if session.get('role') == 'admin' else '🧑' }}
-                {{ session.get('user') }}
-            </span>
-            <a href="/logout" class="btn btn-outline btn-sm">Uitloggen</a>
-            {% else %}
-            <a href="/login"    class="btn btn-outline btn-sm">Inloggen</a>
-            <a href="/register" class="btn btn-primary btn-sm">Registreren</a>
-            {% endif %}
+        <button class="dark-toggle" id="dark-toggle" aria-label="Dark mode">
+            <span class="sun-icon">☀</span><span class="moon-icon">☽</span>
+        </button>
+
+        {% if session.get('user') %}
+        <div class="nav-user-pill {{ session.get('role') }}">
+            {% if session.get('role') == 'admin' %}<span class="crown">♛</span>{% endif %}
+            {{ session.get('user') }}
         </div>
+        <a href="/logout" class="btn btn-ghost btn-sm">Uitloggen</a>
+        {% else %}
+        <a href="/login"    class="btn btn-ghost btn-sm">Inloggen</a>
+        <a href="/register" class="btn btn-primary btn-sm">Registreren</a>
+        {% endif %}
     </div>
 </nav>
 
-<!-- ── TOAST CONTAINER ── -->
-<div class="toast-container" id="toast-container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-            <div class="toast toast-{{ category }}" role="alert">
-                <span class="toast-icon">
-                    {% if category == 'success' %}✅
-                    {% elif category == 'error' %}❌
-                    {% else %}ℹ️{% endif %}
-                </span>
-                <span class="toast-msg">{{ message }}</span>
-                <button class="toast-close" onclick="this.closest('.toast').remove()" aria-label="Sluiten">×</button>
-            </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+<!-- ══ TOASTS ══ -->
+<div class="toast-stack" id="toast-stack">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}{% for cat, msg in messages %}
+  <div class="toast toast-{{ cat }}" role="alert">
+    <span class="toast-bar"></span>
+    <span class="toast-body">
+      <strong class="toast-icon">{% if cat=='success' %}✓{% elif cat=='error' %}✕{% else %}i{% endif %}</strong>
+      <span>{{ msg }}</span>
+    </span>
+    <button class="toast-x" onclick="this.closest('.toast').remove()">×</button>
+  </div>
+  {% endfor %}{% endif %}
+{% endwith %}
 </div>
 
-<!-- ── MAIN ── -->
-<main class="main-content">
-    {% block content %}{% endblock %}
-</main>
+<!-- ══ MAIN ══ -->
+<main class="site-main">{% block content %}{% endblock %}</main>
 
-<!-- ── FOOTER ── -->
-<footer class="footer">
-    <div class="footer-inner">
-        <span>🌊 StrandStoelen Verhuur · Seizoen 2025</span>
-        <span class="footer-clock" id="live-clock"></span>
+<!-- ══ FOOTER ══ -->
+<footer class="site-footer">
+    <div class="footer-wrap">
+        <div class="footer-brand">
+            <strong>ZonneStrand Verhuur</strong>
+            <span>Zomerseizoen 2025 · Alle rechten voorbehouden</span>
+        </div>
+        <div class="footer-clock" id="live-clock"></div>
     </div>
 </footer>
 
 <script src="/static/script.js"></script>
+{% block scripts %}{% endblock %}
 </body>
 </html>

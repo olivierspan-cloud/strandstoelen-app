@@ -1,160 +1,170 @@
 {% extends "base.html" %}
-{% block title %}Overzicht – StrandStoelen{% endblock %}
+{% block title %}Stoelenoverzicht – ZonneStrand{% endblock %}
 
 {% block content %}
 
-<!-- ── HERO ── -->
-<section class="hero">
-    <h1 class="hero-title">Strandstoelen<br><span class="hero-accent">Verhuur 2025</span></h1>
-    <p class="hero-sub">
-        {% if always_open %}
-            <span class="badge badge-green">🔓 Altijd verhuurbaar (admin override)</span>
-        {% elif current_price %}
-            Huidig tarief: <strong>€{{ "%.2f"|format(current_price) }}</strong>
-            <span class="badge badge-ocean">{{ current_slot }}</span>
-        {% else %}
-            <span class="badge badge-red">⛔ Gesloten — verhuur 10:00–18:00</span>
-        {% endif %}
-    </p>
+<!-- ══ HERO ══ -->
+<section class="hero-section">
+    <div class="hero-inner">
+        <div class="hero-badge">Zomerseizoen 2025</div>
+        <h1 class="hero-title">Jouw perfecte<br><em>stranddag</em> begint hier</h1>
+        <p class="hero-copy">
+            {% if always_open %}
+                <span class="status-pill pill-open">🔓 Verhuur altijd beschikbaar (admin override)</span>
+            {% elif current_price %}
+                <span class="status-pill pill-open">🟢 Open — €{{ "%.2f"|format(current_price) }} · {{ current_slot }}</span>
+            {% else %}
+                <span class="status-pill pill-closed">🔴 Gesloten — verhuur 10:00–18:00</span>
+            {% endif %}
+        </p>
+    </div>
 
-    <!-- Stats pills -->
-    <div class="stats-row">
-        <div class="stat-pill vrij">
-            <span class="stat-num" id="stat-vrij">{{ stats.vrij }}</span>
-            <span class="stat-label">Vrij</span>
+    <!-- Stat counters -->
+    <div class="hero-stats">
+        <div class="hstat hstat-vrij">
+            <span class="hstat-n" id="stat-vrij">{{ stats.vrij }}</span>
+            <span class="hstat-l">Beschikbaar</span>
         </div>
-        <div class="stat-pill bezet">
-            <span class="stat-num" id="stat-bezet">{{ stats.bezet }}</span>
-            <span class="stat-label">Bezet</span>
+        <div class="hstat hstat-bezet">
+            <span class="hstat-n" id="stat-bezet">{{ stats.bezet }}</span>
+            <span class="hstat-l">Verhuurd</span>
         </div>
-        <div class="stat-pill kapot">
-            <span class="stat-num" id="stat-kapot">{{ stats.kapot }}</span>
-            <span class="stat-label">Kapot</span>
-        </div>
-        <div class="stat-pill total">
-            <span class="stat-num">50</span>
-            <span class="stat-label">Totaal</span>
+        <div class="hstat hstat-kapot">
+            <span class="hstat-n" id="stat-kapot">{{ stats.kapot }}</span>
+            <span class="hstat-l">Niet beschikbaar</span>
         </div>
     </div>
 </section>
 
-<!-- ── FILTER BAR ── -->
-<div class="filter-bar">
-    <span class="filter-label">Filter:</span>
-    <button class="filter-btn active" data-filter="all">Alle</button>
-    <button class="filter-btn" data-filter="vrij">🟢 Vrij</button>
-    <button class="filter-btn" data-filter="bezet">🟠 Bezet</button>
-    <button class="filter-btn" data-filter="kapot">🔴 Kapot/Reparatie</button>
-    <div class="filter-spacer"></div>
-    {% if role == 'admin' %}
-    <a href="/free-all" class="btn btn-outline btn-sm"
-       data-confirm="Alle bezette stoelen vrijmaken (einde dag)?">🌅 Einde dag</a>
-    {% endif %}
+<!-- ══ CONTROLS BAR ══ -->
+<div class="controls-bar">
+    <div class="filter-group" role="group" aria-label="Filter stoelen">
+        <span class="filter-label">Toon:</span>
+        <button class="filt active" data-filter="all">Alle 50</button>
+        <button class="filt" data-filter="vrij">🟢 Vrij</button>
+        <button class="filt" data-filter="bezet">🟠 Bezet</button>
+        <button class="filt" data-filter="kapot">🔴 Kapot</button>
+    </div>
+    <div class="controls-right">
+        {% if role == 'admin' %}
+        <a href="/free-all"
+           class="btn btn-endofday"
+           data-confirm="Alle bezette stoelen vrijmaken? (Einde dag)">
+            🌅 Einde dag
+        </a>
+        {% endif %}
+    </div>
 </div>
 
-<!-- ── CHAIR GRID ── -->
+<!-- ══ CHAIR GRID ══ -->
 <div class="chair-grid" id="chair-grid">
 {% for chair in chairs %}
 {% set cid    = chair['id'] %}
 {% set status = chair['status'] %}
 {% set renter = renter_map.get(cid) %}
-{% set is_broken_type = status in ('kapot', 'in_reparatie', 'gerepareerd') %}
+{% set broken = status in ('kapot','in_reparatie') %}
 
-<div class="chair-card {{ status }}"
-     data-status="{{ status if not is_broken_type else 'kapot' }}"
-     data-id="{{ cid }}">
+<article class="chair-card {{ status }}"
+         data-status="{{ 'kapot' if broken else status }}"
+         data-id="{{ cid }}">
 
-    <div class="chair-header">
-        <span class="chair-number">{{ cid }}</span>
-        <span class="status-dot {{ status }}"></span>
+    <header class="cc-head">
+        <span class="cc-num">{{ cid }}</span>
+        <span class="cc-dot dot-{{ status }}"></span>
+    </header>
+
+    <div class="cc-icon" aria-hidden="true">
+        {% if status == 'vrij' %}🪑{% elif status == 'bezet' %}👤
+        {% elif status == 'in_reparatie' %}🛠{% else %}🔧{% endif %}
     </div>
 
-    <div class="chair-icon">
-        {% if status == 'vrij' %}🪑
-        {% elif status == 'bezet' %}👤
-        {% elif status == 'in_reparatie' %}🛠️
-        {% elif status == 'gerepareerd' %}✅
-        {% else %}🔧{% endif %}
-    </div>
-
-    <div class="chair-status-label">
-        {% if status == 'vrij' %}Vrij
-        {% elif status == 'bezet' %}Bezet
-        {% elif status == 'kapot' %}Kapot
+    <div class="cc-label">
+        {% if status == 'vrij' %}Beschikbaar
+        {% elif status == 'bezet' %}Verhuurd
         {% elif status == 'in_reparatie' %}In reparatie
-        {% elif status == 'gerepareerd' %}Gerepareerd
-        {% endif %}
+        {% else %}Kapot{% endif %}
     </div>
 
     {% if status == 'bezet' and renter %}
-        <div class="chair-renter">{{ renter }}</div>
+    <div class="cc-renter">{{ renter }}</div>
     {% endif %}
 
-    {% if is_broken_type and chair['repair_reason'] %}
-        <div class="chair-reason" title="{{ chair['repair_reason'] }}">
-            {{ chair['repair_reason'][:20] }}{% if chair['repair_reason']|length > 20 %}…{% endif %}
-        </div>
-    {% endif %}
-
-    <!-- Actions -->
-    <div class="chair-actions">
-        {% if user %}
-            {% if status == 'vrij' %}
-                <a href="/rent/{{ cid }}" class="btn btn-rent btn-xs"
-                   data-confirm="Stoel {{ cid }} huren voor €{{ '%.2f'|format(current_price) if current_price else '?' }}?">
-                   Huur
-                </a>
-                <button class="btn btn-broken btn-xs"
-                        onclick="openBrokenModal({{ cid }})"
-                        type="button">Kapot</button>
-
-            {% elif status == 'bezet' %}
-                {% if user == renter or role == 'admin' %}
-                <a href="/free/{{ cid }}" class="btn btn-free btn-xs"
-                   data-confirm="Stoel {{ cid }} terugbrengen?">Terug</a>
-                {% else %}
-                <span class="chip chip-bezet">Verhuurd</span>
-                {% endif %}
-
-            {% elif status in ('kapot', 'in_reparatie') %}
-                {% if role == 'admin' %}
-                <form method="POST" action="/repair-status/{{ cid }}" class="repair-form">
-                    <select name="repair_status" class="repair-select">
-                        <option value="kapot"        {% if chair['repair_status']=='kapot'        %}selected{% endif %}>Kapot</option>
-                        <option value="in_reparatie" {% if chair['repair_status']=='in_reparatie' %}selected{% endif %}>In reparatie</option>
-                        <option value="gerepareerd"  {% if chair['repair_status']=='gerepareerd'  %}selected{% endif %}>Gerepareerd</option>
-                    </select>
-                    <button type="submit" class="btn btn-repair btn-xs">Opslaan</button>
-                </form>
-                {% else %}
-                <span class="chip chip-kapot">
-                    {% if status == 'in_reparatie' %}In reparatie{% else %}Kapot{% endif %}
-                </span>
-                {% endif %}
-            {% endif %}
-        {% else %}
-            <p class="chair-login-hint"><a href="/login">Login</a> om te huren</p>
-        {% endif %}
+    {% if broken and chair['repair_reason'] %}
+    <div class="cc-reason" title="{{ chair['repair_reason'] }}">
+        {{ chair['repair_reason'][:22] }}{% if chair['repair_reason']|length > 22 %}…{% endif %}
     </div>
-</div>
+    {% endif %}
+
+    <div class="cc-actions">
+    {% if user %}
+        {% if status == 'vrij' %}
+            {% if current_price %}
+            <a href="/checkout/{{ cid }}" class="btn btn-hire btn-xs">Huur – €{{ "%.2f"|format(current_price) }}</a>
+            {% else %}
+            <span class="cc-closed">Gesloten</span>
+            {% endif %}
+            <button class="btn btn-report btn-xs" onclick="openBrokenModal({{ cid }})" type="button">Kapot melden</button>
+
+        {% elif status == 'bezet' %}
+            {% if user == renter or role == 'admin' %}
+            <a href="/free/{{ cid }}" class="btn btn-return btn-xs"
+               data-confirm="Stoel {{ cid }} terugbrengen?">Terugbrengen</a>
+            {% else %}
+            <span class="cc-chip chip-bezet">Verhuurd</span>
+            {% endif %}
+
+        {% elif broken %}
+            {% if role == 'admin' %}
+            <form method="POST" action="/repair-status/{{ cid }}" class="repair-inline">
+                <select name="repair_status" class="repair-sel">
+                    <option value="kapot"        {% if chair['repair_status']=='kapot'        %}selected{% endif %}>Kapot</option>
+                    <option value="in_reparatie" {% if chair['repair_status']=='in_reparatie' %}selected{% endif %}>In reparatie</option>
+                    <option value="gerepareerd"  {% if chair['repair_status']=='gerepareerd'  %}selected{% endif %}>Gerepareerd</option>
+                </select>
+                <button type="submit" class="btn btn-repair btn-xs">Opslaan</button>
+            </form>
+            {% else %}
+            <span class="cc-chip chip-kapot">
+                {{ 'In reparatie' if status == 'in_reparatie' else 'Kapot' }}
+            </span>
+            {% endif %}
+        {% endif %}
+    {% else %}
+        <a href="/login" class="cc-login-cta">Log in om te huren →</a>
+    {% endif %}
+    </div>
+</article>
 {% endfor %}
 </div>
 
-<!-- ── BROKEN MODAL ── -->
-<div class="modal-overlay" id="broken-modal" hidden>
-    <div class="modal">
-        <h2 class="modal-title">🔧 Stoel kapot melden</h2>
-        <p class="modal-sub">Stoel <strong id="modal-chair-num">?</strong></p>
+<!-- ══ BROKEN MODAL ══ -->
+<div class="modal-backdrop" id="broken-modal" hidden aria-modal="true" role="dialog">
+    <div class="modal-box">
+        <button class="modal-close-x" onclick="closeBrokenModal()" aria-label="Sluiten">×</button>
+        <div class="modal-icon">🔧</div>
+        <h2 class="modal-title">Kapot melden</h2>
+        <p class="modal-desc">Stoel <strong id="modal-chair-n">–</strong> — beschrijf het probleem</p>
+
         <form method="POST" id="broken-form" action="/broken/0">
-            <div class="form-group">
-                <label for="reason">Reden (verplicht)</label>
-                <input type="text" id="reason" name="reason"
-                       placeholder="bijv. poot gebroken, leuning los..."
-                       required maxlength="120">
+            <div class="field-group">
+                <label for="reason_choice">Selecteer een reden</label>
+                <select name="reason_choice" id="reason_choice" class="field-select" required>
+                    <option value="" disabled selected>— Kies een reden —</option>
+                    {% for r in broken_reasons %}
+                    <option value="{{ r }}">{{ r|capitalize }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <div class="modal-actions">
-                <button type="button" class="btn btn-outline" onclick="closeBrokenModal()">Annuleren</button>
-                <button type="submit" class="btn btn-broken">Meld kapot</button>
+
+            <div class="field-group" id="custom-reason-group" style="display:none;">
+                <label for="custom_reason">Omschrijf het probleem</label>
+                <input type="text" id="custom_reason" name="custom_reason"
+                       placeholder="bijv. armsteun is gebroken..." maxlength="120">
+            </div>
+
+            <div class="modal-btns">
+                <button type="button" class="btn btn-cancel" onclick="closeBrokenModal()">✕ Annuleren</button>
+                <button type="submit" class="btn btn-report">Meld kapot</button>
             </div>
         </form>
     </div>

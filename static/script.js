@@ -1,176 +1,161 @@
-/* ═══════════════════════════════════════════════
-   STRANDSTOELEN VERHUUR · script.js
-   ═══════════════════════════════════════════════ */
-
 "use strict";
+/* ══════════════════════════════════════════════
+   ZONNESTRAND VERHUUR · script.js
+   ══════════════════════════════════════════════ */
 
-// ── DARK MODE ────────────────────────────────────────────
-function applyTheme(theme) {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-}
-
-(function initTheme() {
-    const saved = localStorage.getItem("theme");
-    if (saved) {
-        applyTheme(saved);
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        applyTheme("dark");
-    }
+// ── DARK MODE ────────────────────────────────
+;(function initTheme() {
+    const saved = localStorage.getItem("zs-theme");
+    const sys   = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", saved || sys);
 })();
 
-// ── TOAST HELPER (callable from anywhere) ────────────────
-window.showToast = function(msg, type = "info") {
-    const container = document.getElementById("toast-container");
-    if (!container) return;
-
-    const toast = document.createElement("div");
-    toast.className = `toast toast-${type}`;
-    const icons = { success: "✅", error: "❌", info: "ℹ️" };
-    toast.innerHTML = `
-        <span class="toast-icon">${icons[type] || "ℹ️"}</span>
-        <span class="toast-msg">${msg}</span>
-        <button class="toast-close" aria-label="Sluiten">×</button>
-    `;
-    toast.querySelector(".toast-close").onclick = () => dismissToast(toast);
-    container.appendChild(toast);
-    setTimeout(() => dismissToast(toast), 5000);
-};
-
-function dismissToast(el) {
-    el.style.transition = "opacity .35s ease, transform .35s ease";
-    el.style.opacity = "0";
-    el.style.transform = "translateX(110%)";
-    setTimeout(() => el.remove(), 370);
+function setTheme(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    localStorage.setItem("zs-theme", t);
 }
 
-// ── DOM READY ────────────────────────────────────────────
+// ── TOAST ────────────────────────────────────
+window.showToast = function(msg, type="info") {
+    const stack = document.getElementById("toast-stack");
+    if (!stack) return;
+    const el = document.createElement("div");
+    el.className = `toast toast-${type}`;
+    const icons = { success:"✓", error:"✕", info:"i" };
+    el.innerHTML = `
+      <span class="toast-bar"></span>
+      <span class="toast-body">
+        <strong class="toast-icon">${icons[type]||"i"}</strong>
+        <span>${msg}</span>
+      </span>
+      <button class="toast-x" onclick="dismissToast(this.closest('.toast'))">×</button>`;
+    stack.appendChild(el);
+    setTimeout(() => dismissToast(el), 5000);
+};
+
+window.dismissToast = function(el) {
+    if (!el) return;
+    el.style.transition = "opacity .3s, transform .3s";
+    el.style.opacity = "0";
+    el.style.transform = "translateX(110%)";
+    setTimeout(() => el?.remove(), 320);
+};
+
+// ── DOM READY ────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
 
     // Dark mode toggle
-    const darkBtn = document.getElementById("dark-toggle");
-    if (darkBtn) {
-        darkBtn.addEventListener("click", () => {
-            const current = document.documentElement.getAttribute("data-theme");
-            applyTheme(current === "dark" ? "light" : "dark");
-        });
-    }
-
-    // Auto-dismiss server-rendered toasts
-    document.querySelectorAll(".toast").forEach((el) => {
-        setTimeout(() => dismissToast(el), 4500);
+    document.getElementById("dark-toggle")?.addEventListener("click", () => {
+        const cur = document.documentElement.getAttribute("data-theme");
+        setTheme(cur === "dark" ? "light" : "dark");
     });
 
-    // ── LIVE CLOCK ──────────────────────────────────────
+    // Auto-dismiss server toasts
+    document.querySelectorAll(".toast").forEach(el => setTimeout(() => dismissToast(el), 4500));
+
+    // Live clock
     const clock = document.getElementById("live-clock");
     function tick() {
         if (!clock) return;
-        const now = new Date();
-        const pad = n => String(n).padStart(2, "0");
-        clock.textContent = `🕐 ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        const n = new Date();
+        const p = x => String(x).padStart(2,"0");
+        clock.textContent = `${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
     }
-    tick();
-    setInterval(tick, 1000);
+    tick(); setInterval(tick, 1000);
 
-    // ── HAMBURGER ────────────────────────────────────────
-    const navToggle = document.getElementById("nav-toggle");
-    const navLinks  = document.getElementById("nav-links");
-    if (navToggle && navLinks) {
-        navToggle.addEventListener("click", () => {
-            const open = navLinks.classList.toggle("open");
-            navToggle.classList.toggle("open", open);
-            navToggle.setAttribute("aria-label", open ? "Menu sluiten" : "Menu openen");
-        });
-        // Close on outside click
-        document.addEventListener("click", (e) => {
-            if (!navToggle.contains(e.target) && !navLinks.contains(e.target)) {
-                navLinks.classList.remove("open");
-                navToggle.classList.remove("open");
-            }
-        });
-    }
+    // Hamburger
+    const toggle  = document.getElementById("nav-toggle");
+    const navMenu = document.getElementById("nav-menu");
+    toggle?.addEventListener("click", () => {
+        const o = navMenu.classList.toggle("open");
+        toggle.classList.toggle("open", o);
+    });
+    document.addEventListener("click", e => {
+        if (navMenu?.classList.contains("open") && !toggle?.contains(e.target) && !navMenu.contains(e.target)) {
+            navMenu.classList.remove("open");
+            toggle?.classList.remove("open");
+        }
+    });
 
-    // ── CONFIRM DIALOGS (data-confirm attribute) ─────────
-    document.addEventListener("click", (e) => {
+    // Scroll: navbar shadow
+    const navbar = document.getElementById("navbar");
+    window.addEventListener("scroll", () => {
+        navbar?.classList.toggle("scrolled", window.scrollY > 10);
+    }, { passive: true });
+
+    // Confirm dialogs
+    document.addEventListener("click", e => {
         const el = e.target.closest("[data-confirm]");
-        if (!el) return;
-        const msg = el.getAttribute("data-confirm");
-        if (msg && !confirm(msg)) e.preventDefault();
+        if (el && !confirm(el.dataset.confirm)) e.preventDefault();
     });
 
-    // ── CHAIR FILTER ─────────────────────────────────────
-    const filterBtns = document.querySelectorAll(".filter-btn");
-    const chairGrid  = document.getElementById("chair-grid");
-
-    filterBtns.forEach((btn) => {
-        btn.addEventListener("click", () => {
-            filterBtns.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            const filter = btn.dataset.filter;
-
-            chairGrid?.querySelectorAll(".chair-card").forEach((card) => {
-                const status = card.dataset.status;
-                const show = filter === "all"
-                    || status === filter
-                    || (filter === "kapot" && (status === "kapot" || status === "in_reparatie"));
-                card.classList.toggle("hidden", !show);
-            });
+    // Chair filter
+    const filts = document.querySelectorAll(".filt");
+    const grid  = document.getElementById("chair-grid");
+    filts.forEach(btn => btn.addEventListener("click", () => {
+        filts.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const f = btn.dataset.filter;
+        grid?.querySelectorAll(".chair-card").forEach(card => {
+            const s = card.dataset.status;
+            const show = f === "all" || s === f || (f === "kapot" && (s === "kapot" || s === "in_reparatie"));
+            card.classList.toggle("hidden", !show);
         });
-    });
+    }));
 
-    // ── LIVE POLLING (every 20s on index page) ───────────
-    if (chairGrid) {
+    // Live polling
+    if (grid) {
         setInterval(async () => {
             try {
                 const [cr, sr] = await Promise.all([fetch("/api/chairs"), fetch("/api/stats")]);
                 const chairs = await cr.json();
                 const stats  = await sr.json();
-
-                // If any status changed → reload for updated buttons/renter info
-                for (const { id, status } of chairs) {
-                    const card = document.querySelector(`.chair-card[data-id="${id}"]`);
-                    if (card && card.dataset.status !== status) {
-                        window.location.reload();
-                        return;
-                    }
-                }
-
-                // Update counters
-                ["vrij", "bezet", "kapot"].forEach(s => {
+                let changed = false;
+                chairs.forEach(({id, status}) => {
+                    const c = grid.querySelector(`.chair-card[data-id="${id}"]`);
+                    if (c && c.dataset.status !== status) changed = true;
+                });
+                if (changed) { window.location.reload(); return; }
+                ["vrij","bezet","kapot"].forEach(s => {
                     const el = document.getElementById(`stat-${s}`);
                     if (el) el.textContent = stats[s];
                 });
-            } catch { /* ignore network errors */ }
+            } catch {}
         }, 20000);
     }
 
-    // ── BROKEN MODAL ─────────────────────────────────────
+    // Broken modal
     const modal      = document.getElementById("broken-modal");
     const brokenForm = document.getElementById("broken-form");
-    const modalChair = document.getElementById("modal-chair-num");
+    const modalChairN = document.getElementById("modal-chair-n");
+    const reasonSel   = document.getElementById("reason_choice");
+    const customGroup = document.getElementById("custom-reason-group");
+    const customInput = document.getElementById("custom_reason");
 
-    window.openBrokenModal = function(chairId) {
+    window.openBrokenModal = function(id) {
         if (!modal) return;
-        modalChair.textContent = chairId;
-        brokenForm.action = `/broken/${chairId}`;
+        modalChairN.textContent = id;
+        brokenForm.action = `/broken/${id}`;
         modal.removeAttribute("hidden");
-        document.getElementById("reason")?.focus();
+        document.body.style.overflow = "hidden";
+        reasonSel?.focus();
     };
-
     window.closeBrokenModal = function() {
         modal?.setAttribute("hidden", "");
-        if (brokenForm) brokenForm.reset();
+        document.body.style.overflow = "";
+        brokenForm?.reset();
+        if (customGroup) customGroup.style.display = "none";
+        if (customInput) customInput.required = false;
     };
 
-    // Close modal on overlay click
-    modal?.addEventListener("click", (e) => {
-        if (e.target === modal) closeBrokenModal();
+    // Show/hide custom reason field
+    reasonSel?.addEventListener("change", () => {
+        const isAnders = reasonSel.value === "anders";
+        if (customGroup) customGroup.style.display = isAnders ? "block" : "none";
+        if (customInput) customInput.required = isAnders;
     });
 
-    // Close modal on Escape
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeBrokenModal();
-    });
+    modal?.addEventListener("click", e => { if (e.target === modal) closeBrokenModal(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeBrokenModal(); });
 
-    console.log("🏖️ StrandStoelen JS geladen.");
 });

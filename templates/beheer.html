@@ -1,131 +1,135 @@
 {% extends "base.html" %}
-{% block title %}Beheer – StrandStoelen{% endblock %}
+{% block title %}Dashboard – ZonneStrand{% endblock %}
 
 {% block content %}
 
-<section class="hero hero-sm">
-    <h1 class="hero-title">📊 Beheer<span class="hero-accent">dashboard</span></h1>
-    <p class="hero-sub">Inkomsten & stoeloverzicht — Seizoen 2025</p>
+<section class="dash-hero">
+    <h1 class="dash-title">Beheerdashboard</h1>
+    <p class="dash-sub">ZonneStrand Verhuur · Seizoen 2025</p>
 </section>
 
-<!-- ── REVENUE CARDS ── -->
-<div class="revenue-grid">
-    <div class="revenue-card">
-        <div class="revenue-icon">☀️</div>
-        <div class="revenue-period">Vandaag</div>
-        <div class="revenue-amount">€{{ "%.2f"|format(revenue['day']) }}</div>
+<!-- ══ REVENUE CARDS ══ -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon">☀️</span>
+        <span class="kpi-label">Vandaag</span>
+        <span class="kpi-val">€{{ "%.2f"|format(revenue['day']) }}</span>
     </div>
-    <div class="revenue-card card-week">
-        <div class="revenue-icon">📅</div>
-        <div class="revenue-period">Deze week</div>
-        <div class="revenue-amount">€{{ "%.2f"|format(revenue['week']) }}</div>
+    <div class="kpi-card kpi-accent">
+        <span class="kpi-icon">📅</span>
+        <span class="kpi-label">Deze week</span>
+        <span class="kpi-val">€{{ "%.2f"|format(revenue['week']) }}</span>
     </div>
-    <div class="revenue-card">
-        <div class="revenue-icon">🗓️</div>
-        <div class="revenue-period">Deze maand</div>
-        <div class="revenue-amount">€{{ "%.2f"|format(revenue['month']) }}</div>
+    <div class="kpi-card">
+        <span class="kpi-icon">🗓</span>
+        <span class="kpi-label">Deze maand</span>
+        <span class="kpi-val">€{{ "%.2f"|format(revenue['month']) }}</span>
     </div>
-    <div class="revenue-card card-season">
-        <div class="revenue-icon">🌊</div>
-        <div class="revenue-period">Seizoen totaal</div>
-        <div class="revenue-amount">€{{ "%.2f"|format(revenue['season']) }}</div>
+    <div class="kpi-card kpi-warm">
+        <span class="kpi-icon">🌊</span>
+        <span class="kpi-label">Seizoen</span>
+        <span class="kpi-val">€{{ "%.2f"|format(revenue['season']) }}</span>
     </div>
 </div>
 
-<!-- ── CONTROLS ROW ── -->
-<div class="controls-row">
-    <!-- Always open toggle -->
-    <div class="control-card">
-        <div class="control-label">
-            <span>🔓 Altijd verhuurbaar</span>
-            <small>Override tijdregels (10:00–18:00)</small>
+<!-- ══ CONTROLS ══ -->
+<div class="dash-controls">
+    <div class="control-tile">
+        <div>
+            <strong>🔓 Altijd verhuurbaar</strong>
+            <small>Override van openingstijden</small>
         </div>
-        <button class="toggle-btn {% if always_open %}active{% endif %}"
-                id="always-open-btn"
-                aria-pressed="{{ 'true' if always_open else 'false' }}">
-            <span class="toggle-track"></span>
-            <span class="toggle-label-off">Uit</span>
-            <span class="toggle-label-on">Aan</span>
+        <button class="toggle-pill {% if always_open %}on{% endif %}"
+                id="always-open-btn" aria-pressed="{{ 'true' if always_open else 'false' }}">
+            <span class="tp-thumb"></span>
+            <span class="tp-label">{{ 'Aan' if always_open else 'Uit' }}</span>
         </button>
     </div>
-
-    <!-- End of day -->
-    <div class="control-card">
-        <div class="control-label">
-            <span>🌅 Einde dag</span>
+    <div class="control-tile">
+        <div>
+            <strong>🌅 Einde dag</strong>
             <small>Alle bezette stoelen vrijmaken</small>
         </div>
-        <a href="/free-all" class="btn btn-outline"
-           data-confirm="Alle bezette stoelen vrijmaken?">Uitvoeren</a>
+        <a href="/free-all" class="btn btn-endofday-dash"
+           data-confirm="Alle bezette stoelen vrijmaken?">Uitvoeren →</a>
     </div>
 </div>
 
-<!-- ── CHAIR STATS ── -->
-<div class="beheer-section">
-    <h2 class="section-title">Stoeloverzicht</h2>
-    <div class="stats-row">
-        <div class="stat-pill vrij">  <span class="stat-num">{{ stats['vrij'] }}</span>  <span class="stat-label">Vrij</span></div>
-        <div class="stat-pill bezet"> <span class="stat-num">{{ stats['bezet'] }}</span> <span class="stat-label">Bezet</span></div>
-        <div class="stat-pill kapot"> <span class="stat-num">{{ stats['kapot'] }}</span> <span class="stat-label">Kapot</span></div>
-    </div>
-    <div class="occ-bar-wrap">
-        {% set pct_b = (stats['bezet'] / 50 * 100)|int %}
-        {% set pct_k = (stats['kapot'] / 50 * 100)|int %}
-        <div class="occ-bar">
-            <div class="occ-seg occ-bezet" style="width:{{ pct_b }}%">{% if pct_b > 8 %}{{ pct_b }}%{% endif %}</div>
-            <div class="occ-seg occ-kapot" style="width:{{ pct_k }}%">{% if pct_k > 8 %}{{ pct_k }}%{% endif %}</div>
+<!-- ══ CHAIR STATUS BAR ══ -->
+<div class="dash-section">
+    <h2 class="ds-title">Stoeloverzicht</h2>
+    <div class="occ-stats">
+        <div class="occ-stat s-vrij">
+            <span class="occ-n">{{ stats['vrij'] }}</span><span>Vrij</span>
         </div>
-        <span class="occ-label">Bezettingsgraad (groen = vrij)</span>
+        <div class="occ-stat s-bezet">
+            <span class="occ-n">{{ stats['bezet'] }}</span><span>Bezet</span>
+        </div>
+        <div class="occ-stat s-kapot">
+            <span class="occ-n">{{ stats['kapot'] }}</span><span>Kapot</span>
+        </div>
+    </div>
+    {% set pb = (stats['bezet']/50*100)|int %}
+    {% set pk = (stats['kapot']/50*100)|int %}
+    <div class="occ-bar-outer">
+        <div class="occ-fill fill-bezet" style="width:{{ pb }}%">
+            {% if pb > 7 %}{{ pb }}%{% endif %}
+        </div>
+        <div class="occ-fill fill-kapot" style="width:{{ pk }}%">
+            {% if pk > 7 %}{{ pk }}%{% endif %}
+        </div>
+    </div>
+    <p class="occ-note">Groen = beschikbaar · Oranje = verhuurd · Rood = kapot</p>
+</div>
+
+<!-- ══ CHARTS ══ -->
+<div class="dash-section">
+    <div class="chart-header-row">
+        <h2 class="ds-title">Inkomsten & verhuren</h2>
+        <button class="btn btn-demo-chart" id="demo-chart-btn" type="button">
+            📊 Voorbeeldgrafiek
+        </button>
+    </div>
+    <div class="charts-duo">
+        <div class="chart-card">
+            <p class="chart-label">Inkomsten per dag (€)</p>
+            <canvas id="chartDay" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+            <p class="chart-label">Verhuren per dag (aantal)</p>
+            <canvas id="chartCount" height="200"></canvas>
+        </div>
+    </div>
+    <div class="chart-card chart-full">
+        <p class="chart-label">Inkomsten per week (€)</p>
+        <canvas id="chartWeek" height="120"></canvas>
     </div>
 </div>
 
-<!-- ── CHARTS ── -->
-<div class="charts-grid">
-    <div class="beheer-section chart-section">
-        <h2 class="section-title">Inkomsten per dag (€)</h2>
-        <canvas id="chartDay" height="220"></canvas>
-    </div>
-    <div class="beheer-section chart-section">
-        <h2 class="section-title">Inkomsten per week (€)</h2>
-        <canvas id="chartWeek" height="220"></canvas>
-    </div>
-</div>
-
-<!-- Rental count chart -->
-<div class="beheer-section">
-    <h2 class="section-title">Aantal verhuren per dag</h2>
-    <canvas id="chartCount" height="160"></canvas>
-</div>
-
-<!-- ── BROKEN CHAIRS ── -->
+<!-- ══ BROKEN CHAIRS ══ -->
 {% if broken_chairs %}
-<div class="beheer-section">
-    <h2 class="section-title">🔧 Kapotte stoelen ({{ broken_chairs|length }})</h2>
-    <div class="table-wrap">
-        <table class="data-table">
+<div class="dash-section">
+    <h2 class="ds-title">🔧 Kapotte stoelen <span class="count-badge">{{ broken_chairs|length }}</span></h2>
+    <div class="table-scroll">
+        <table class="dash-table">
             <thead>
-                <tr>
-                    <th>Stoel</th>
-                    <th>Reden</th>
-                    <th>Status</th>
-                    <th>Actie</th>
-                </tr>
+                <tr><th>Stoel</th><th>Reden</th><th>Status</th><th>Actie</th></tr>
             </thead>
             <tbody>
             {% for c in broken_chairs %}
             <tr>
-                <td><strong>Stoel {{ c['id'] }}</strong></td>
-                <td class="muted">{{ c['repair_reason'] or '–' }}</td>
+                <td><strong>#{{ c['id'] }}</strong></td>
+                <td class="td-muted">{{ c['repair_reason'] or '—' }}</td>
                 <td>
-                    <span class="repair-badge repair-{{ c['repair_status'] or 'kapot' }}">
-                        {% if c['repair_status'] == 'in_reparatie' %}🛠️ In reparatie
-                        {% elif c['repair_status'] == 'gerepareerd' %}✅ Gerepareerd
+                    <span class="repair-tag rt-{{ c['repair_status'] or 'kapot' }}">
+                        {% if c['repair_status']=='in_reparatie' %}🛠 In reparatie
+                        {% elif c['repair_status']=='gerepareerd' %}✅ Gerepareerd
                         {% else %}🔴 Kapot{% endif %}
                     </span>
                 </td>
                 <td>
-                    <form method="POST" action="/repair-status/{{ c['id'] }}" class="inline-repair-form">
-                        <select name="repair_status" class="repair-select">
+                    <form method="POST" action="/repair-status/{{ c['id'] }}" class="repair-row-form">
+                        <select name="repair_status" class="repair-sel">
                             <option value="kapot"        {% if c['repair_status']=='kapot'        %}selected{% endif %}>Kapot</option>
                             <option value="in_reparatie" {% if c['repair_status']=='in_reparatie' %}selected{% endif %}>In reparatie</option>
                             <option value="gerepareerd"  {% if c['repair_status']=='gerepareerd'  %}selected{% endif %}>Gerepareerd</option>
@@ -141,137 +145,181 @@
 </div>
 {% endif %}
 
-<!-- ── RECENT RENTALS ── -->
-<div class="beheer-section">
-    <h2 class="section-title">Recente verhuren</h2>
+<!-- ══ RECENT RENTALS ══ -->
+<div class="dash-section">
+    <h2 class="ds-title">Recente verhuren</h2>
     {% if recent %}
-    <div class="table-wrap">
-        <table class="data-table">
-            <thead>
-                <tr><th>#</th><th>Stoel</th><th>Klant</th><th>Tijdslot</th><th>Bedrag</th><th>Datum & tijd</th></tr>
-            </thead>
+    <div class="table-scroll">
+        <table class="dash-table">
+            <thead><tr><th>#</th><th>Stoel</th><th>Klant</th><th>Slot</th><th>Bedrag</th><th>Datum</th></tr></thead>
             <tbody>
             {% for r in recent %}
             <tr>
-                <td class="muted">{{ r['id'] }}</td>
-                <td><strong>Stoel {{ r['chair_id'] }}</strong></td>
-                <td>{{ r['rented_by'] or '–' }}</td>
-                <td><span class="badge badge-ocean">{{ r['time_slot'] or '–' }}</span></td>
-                <td class="amount">€{{ "%.2f"|format(r['price']) }}</td>
-                <td class="muted">{{ r['date'] }}</td>
+                <td class="td-muted">{{ r['id'] }}</td>
+                <td><strong>#{{ r['chair_id'] }}</strong></td>
+                <td>{{ r['rented_by'] or '—' }}</td>
+                <td><span class="slot-tag">{{ r['time_slot'] or '—' }}</span></td>
+                <td class="td-amount">€{{ "%.2f"|format(r['price']) }}</td>
+                <td class="td-muted">{{ r['date'] }}</td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
     {% else %}
-    <p class="empty-state">Nog geen verhuren geregistreerd.</p>
+    <p class="empty-msg">Nog geen verhuren geregistreerd.</p>
     {% endif %}
 </div>
 
-<!-- Chart.js -->
+{% endblock %}
+
+{% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-// Pass data from Jinja to JS
-const DAY_DATA  = {{ day_data  | tojson }};
-const WEEK_DATA = {{ week_data | tojson }};
+// ── Real data from server ──────────────────────────────
+const REAL_DAY  = {{ day_data  | tojson }};
+const REAL_WEEK = {{ week_data | tojson }};
 
-const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
-const gridColor  = () => isDark() ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)';
-const labelColor = () => isDark() ? '#a0b4be' : '#6b7f89';
-const oceanGrad  = (ctx) => {
-    const g = ctx.createLinearGradient(0, 0, 0, 300);
-    g.addColorStop(0, 'rgba(42,154,191,.85)');
-    g.addColorStop(1, 'rgba(15,63,82,.2)');
+// ── Demo (fictional) data for one realistic month ──────
+const DEMO_DAYS = [
+    {dag:"06-01",totaal:87.5,aantal:7},{dag:"06-02",totaal:112.5,aantal:9},
+    {dag:"06-03",totaal:125.0,aantal:10},{dag:"06-04",totaal:150.0,aantal:12},
+    {dag:"06-05",totaal:162.5,aantal:13},{dag:"06-06",totaal:200.0,aantal:16},
+    {dag:"06-07",totaal:187.5,aantal:15},{dag:"06-08",totaal:137.5,aantal:11},
+    {dag:"06-09",totaal:125.0,aantal:10},{dag:"06-10",totaal:112.5,aantal:9},
+    {dag:"06-11",totaal:150.0,aantal:12},{dag:"06-12",totaal:175.0,aantal:14},
+    {dag:"06-13",totaal:225.0,aantal:18},{dag:"06-14",totaal:212.5,aantal:17},
+    {dag:"06-15",totaal:162.5,aantal:13},{dag:"06-16",totaal:125.0,aantal:10},
+    {dag:"06-17",totaal:137.5,aantal:11},{dag:"06-18",totaal:175.0,aantal:14},
+    {dag:"06-19",totaal:200.0,aantal:16},{dag:"06-20",totaal:250.0,aantal:20},
+    {dag:"06-21",totaal:237.5,aantal:19},{dag:"06-22",totaal:187.5,aantal:15},
+    {dag:"06-23",totaal:150.0,aantal:12},{dag:"06-24",totaal:162.5,aantal:13},
+    {dag:"06-25",totaal:200.0,aantal:16},{dag:"06-26",totaal:225.0,aantal:18},
+    {dag:"06-27",totaal:262.5,aantal:21},{dag:"06-28",totaal:300.0,aantal:24},
+    {dag:"06-29",totaal:287.5,aantal:23},{dag:"06-30",totaal:275.0,aantal:22},
+];
+const DEMO_WEEKS = [
+    {week:"W22",totaal:825,aantal:66},{week:"W23",totaal:1087.5,aantal:87},
+    {week:"W24",totaal:1225,aantal:98},{week:"W25",totaal:1550,aantal:124},
+];
+
+let useDemoData = false;
+let chartDay, chartCount, chartWeek;
+
+const dark = () => document.documentElement.getAttribute('data-theme') === 'dark';
+const gc   = () => dark() ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
+const tc   = () => dark() ? '#8aa4b0' : '#6b7f89';
+
+function oceanGrad(ctx, alpha1=.9, alpha2=.15) {
+    const g = ctx.createLinearGradient(0, 0, 0, 260);
+    g.addColorStop(0, `rgba(26,130,170,${alpha1})`);
+    g.addColorStop(1, `rgba(15,63,82,${alpha2})`);
     return g;
-};
-
-function baseOptions(title) {
-    return {
-        responsive: true,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: ctx => ` €${ctx.parsed.y.toFixed(2)}`
-                }
-            }
-        },
-        scales: {
-            x: { grid: { color: gridColor() }, ticks: { color: labelColor() } },
-            y: { grid: { color: gridColor() }, ticks: { color: labelColor(), callback: v => '€' + v } }
-        }
-    };
 }
 
-// Day chart
-const ctxDay = document.getElementById('chartDay').getContext('2d');
-new Chart(ctxDay, {
-    type: 'bar',
-    data: {
-        labels: DAY_DATA.map(d => d.dag ? d.dag.slice(5) : ''),
-        datasets: [{
-            data: DAY_DATA.map(d => d.totaal),
-            backgroundColor: oceanGrad(ctxDay),
-            borderColor: 'rgba(42,154,191,1)',
-            borderWidth: 2,
-            borderRadius: 6,
-        }]
-    },
-    options: baseOptions('Inkomsten per dag')
-});
+function buildCharts(data) {
+    const days  = data.days;
+    const weeks = data.weeks;
 
-// Week chart
-const ctxWeek = document.getElementById('chartWeek').getContext('2d');
-new Chart(ctxWeek, {
-    type: 'bar',
-    data: {
-        labels: WEEK_DATA.map(d => d.week),
-        datasets: [{
-            data: WEEK_DATA.map(d => d.totaal),
-            backgroundColor: 'rgba(15,63,82,.7)',
-            borderColor: 'rgba(15,63,82,1)',
-            borderWidth: 2,
-            borderRadius: 6,
-        }]
-    },
-    options: baseOptions('Inkomsten per week')
-});
+    const dayLabels   = days.map(d => d.dag || '');
+    const dayRevenue  = days.map(d => d.totaal);
+    const dayCount    = days.map(d => d.aantal);
+    const weekLabels  = weeks.map(w => w.week);
+    const weekRevenue = weeks.map(w => w.totaal);
 
-// Count chart (line)
-const ctxCount = document.getElementById('chartCount').getContext('2d');
-new Chart(ctxCount, {
-    type: 'line',
-    data: {
-        labels: DAY_DATA.map(d => d.dag ? d.dag.slice(5) : ''),
-        datasets: [{
-            label: 'Verhuren',
-            data: DAY_DATA.map(d => d.aantal),
-            borderColor: 'rgba(46,189,107,1)',
-            backgroundColor: 'rgba(46,189,107,.15)',
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: 'rgba(46,189,107,1)',
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            x: { grid: { color: gridColor() }, ticks: { color: labelColor() } },
-            y: { grid: { color: gridColor() }, ticks: { color: labelColor(), stepSize: 1 } }
+    const axisOpts = () => ({
+        grid: { color: gc() },
+        ticks: { color: tc(), font: { family: 'Outfit', size: 11 } }
+    });
+
+    if (chartDay) chartDay.destroy();
+    const ctxD = document.getElementById('chartDay').getContext('2d');
+    chartDay = new Chart(ctxD, {
+        type: 'bar',
+        data: {
+            labels: dayLabels,
+            datasets: [{
+                data: dayRevenue,
+                backgroundColor: oceanGrad(ctxD),
+                borderColor: 'rgba(26,130,170,.9)',
+                borderWidth: 1.5,
+                borderRadius: 5,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: true,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` €${c.parsed.y.toFixed(2)}` } } },
+            scales: { x: axisOpts(), y: { ...axisOpts(), ticks: { ...axisOpts().ticks, callback: v => '€'+v } } }
         }
-    }
+    });
+
+    if (chartCount) chartCount.destroy();
+    const ctxC = document.getElementById('chartCount').getContext('2d');
+    chartCount = new Chart(ctxC, {
+        type: 'line',
+        data: {
+            labels: dayLabels,
+            datasets: [{
+                data: dayCount,
+                borderColor: 'rgba(46,189,107,1)',
+                backgroundColor: 'rgba(46,189,107,.12)',
+                fill: true, tension: 0.42,
+                pointBackgroundColor: 'rgba(46,189,107,1)',
+                pointRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { x: axisOpts(), y: { ...axisOpts(), ticks: { ...axisOpts().ticks, stepSize: 1 } } }
+        }
+    });
+
+    if (chartWeek) chartWeek.destroy();
+    const ctxW = document.getElementById('chartWeek').getContext('2d');
+    chartWeek = new Chart(ctxW, {
+        type: 'bar',
+        data: {
+            labels: weekLabels,
+            datasets: [{
+                data: weekRevenue,
+                backgroundColor: 'rgba(15,63,82,.75)',
+                borderColor: 'rgba(15,63,82,1)',
+                borderWidth: 1.5,
+                borderRadius: 5,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` €${c.parsed.y.toFixed(2)}` } } },
+            scales: { x: axisOpts(), y: { ...axisOpts(), ticks: { ...axisOpts().ticks, callback: v => '€'+v } } }
+        }
+    });
+}
+
+// Initial load with real data
+buildCharts({ days: REAL_DAY, weeks: REAL_WEEK });
+
+// Demo chart toggle
+document.getElementById('demo-chart-btn').addEventListener('click', function() {
+    useDemoData = !useDemoData;
+    buildCharts(useDemoData
+        ? { days: DEMO_DAYS, weeks: DEMO_WEEKS }
+        : { days: REAL_DAY, weeks: REAL_WEEK }
+    );
+    this.textContent = useDemoData ? '📊 Echte data' : '📊 Voorbeeldgrafiek';
+    this.classList.toggle('active', useDemoData);
+    window.showToast(useDemoData ? 'Voorbeelddata geladen (fictief)' : 'Echte data geladen', 'info');
 });
 
 // Always-open toggle
 document.getElementById('always-open-btn')?.addEventListener('click', async function() {
     const res  = await fetch('/toggle-always-open', { method: 'POST' });
     const data = await res.json();
-    this.classList.toggle('active', data.always_open);
+    this.classList.toggle('on', data.always_open);
     this.setAttribute('aria-pressed', data.always_open);
-    showToast(data.always_open ? '🔓 Altijd verhuurbaar ingeschakeld' : '🔒 Tijdregels weer actief', 'success');
+    this.querySelector('.tp-label').textContent = data.always_open ? 'Aan' : 'Uit';
+    window.showToast(data.always_open ? '🔓 Altijd verhuurbaar ingeschakeld' : '🔒 Tijdregels actief', 'success');
 });
 </script>
-
 {% endblock %}
