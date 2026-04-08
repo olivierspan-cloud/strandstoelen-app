@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="nl" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}StrandStoelen Verhuur{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- Ocean waves (light mode only) -->
+<div class="ocean-bg" aria-hidden="true">
+    <div class="wave wave1"></div>
+    <div class="wave wave2"></div>
+    <div class="wave wave3"></div>
+</div>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+    <a href="/" class="nav-brand">
+        <span class="brand-icon">🏖️</span>
+        <span class="brand-name">StrandStoelen<span class="brand-accent">NL</span></span>
+    </a>
+
+    <!-- Hamburger for mobile -->
+    <button class="nav-hamburger" id="nav-toggle" aria-label="Menu openen">
+        <span></span><span></span><span></span>
+    </button>
+
+    <div class="nav-links" id="nav-links">
+        <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">🪑 Overzicht</a>
+        {% if session.get('role') == 'admin' %}
+        <a href="/beheer" class="nav-link {% if request.path == '/beheer' %}active{% endif %}">📊 Beheer</a>
+        {% endif %}
+
+        <div class="nav-right">
+            <!-- Dark mode toggle -->
+            <button class="dark-toggle" id="dark-toggle" aria-label="Dark mode">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+
+            {% if session.get('user') %}
+            <span class="user-badge {{ session.get('role') }}">
+                {{ '👑' if session.get('role') == 'admin' else '🧑' }}
+                {{ session.get('user') }}
+            </span>
+            <a href="/logout" class="btn btn-outline btn-sm">Uitloggen</a>
+            {% else %}
+            <a href="/login"    class="btn btn-outline btn-sm">Inloggen</a>
+            <a href="/register" class="btn btn-primary btn-sm">Registreren</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- ── TOAST CONTAINER ── -->
+<div class="toast-container" id="toast-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="toast toast-{{ category }}" role="alert">
+                <span class="toast-icon">
+                    {% if category == 'success' %}✅
+                    {% elif category == 'error' %}❌
+                    {% else %}ℹ️{% endif %}
+                </span>
+                <span class="toast-msg">{{ message }}</span>
+                <button class="toast-close" onclick="this.closest('.toast').remove()" aria-label="Sluiten">×</button>
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+<!-- ── MAIN ── -->
+<main class="main-content">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+    <div class="footer-inner">
+        <span>🌊 StrandStoelen Verhuur · Seizoen 2025</span>
+        <span class="footer-clock" id="live-clock"></span>
+    </div>
+</footer>
+
+<script src="/static/script.js"></script>
+</body>
+</html>

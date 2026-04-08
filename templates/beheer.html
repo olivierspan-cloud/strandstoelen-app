@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block title %}Beheer – StrandStoelen{% endblock %}
+
+{% block content %}
+
+<section class="hero hero-sm">
+    <h1 class="hero-title">📊 Beheer<span class="hero-accent">dashboard</span></h1>
+    <p class="hero-sub">Inkomsten & stoeloverzicht — Seizoen 2025</p>
+</section>
+
+<!-- ── REVENUE CARDS ── -->
+<div class="revenue-grid">
+    <div class="revenue-card">
+        <div class="revenue-icon">☀️</div>
+        <div class="revenue-period">Vandaag</div>
+        <div class="revenue-amount">€{{ "%.2f"|format(revenue['day']) }}</div>
+    </div>
+    <div class="revenue-card card-week">
+        <div class="revenue-icon">📅</div>
+        <div class="revenue-period">Deze week</div>
+        <div class="revenue-amount">€{{ "%.2f"|format(revenue['week']) }}</div>
+    </div>
+    <div class="revenue-card">
+        <div class="revenue-icon">🗓️</div>
+        <div class="revenue-period">Deze maand</div>
+        <div class="revenue-amount">€{{ "%.2f"|format(revenue['month']) }}</div>
+    </div>
+    <div class="revenue-card card-season">
+        <div class="revenue-icon">🌊</div>
+        <div class="revenue-period">Seizoen totaal</div>
+        <div class="revenue-amount">€{{ "%.2f"|format(revenue['season']) }}</div>
+    </div>
+</div>
+
+<!-- ── CONTROLS ROW ── -->
+<div class="controls-row">
+    <!-- Always open toggle -->
+    <div class="control-card">
+        <div class="control-label">
+            <span>🔓 Altijd verhuurbaar</span>
+            <small>Override tijdregels (10:00–18:00)</small>
+        </div>
+        <button class="toggle-btn {% if always_open %}active{% endif %}"
+                id="always-open-btn"
+                aria-pressed="{{ 'true' if always_open else 'false' }}">
+            <span class="toggle-track"></span>
+            <span class="toggle-label-off">Uit</span>
+            <span class="toggle-label-on">Aan</span>
+        </button>
+    </div>
+
+    <!-- End of day -->
+    <div class="control-card">
+        <div class="control-label">
+            <span>🌅 Einde dag</span>
+            <small>Alle bezette stoelen vrijmaken</small>
+        </div>
+        <a href="/free-all" class="btn btn-outline"
+           data-confirm="Alle bezette stoelen vrijmaken?">Uitvoeren</a>
+    </div>
+</div>
+
+<!-- ── CHAIR STATS ── -->
+<div class="beheer-section">
+    <h2 class="section-title">Stoeloverzicht</h2>
+    <div class="stats-row">
+        <div class="stat-pill vrij">  <span class="stat-num">{{ stats['vrij'] }}</span>  <span class="stat-label">Vrij</span></div>
+        <div class="stat-pill bezet"> <span class="stat-num">{{ stats['bezet'] }}</span> <span class="stat-label">Bezet</span></div>
+        <div class="stat-pill kapot"> <span class="stat-num">{{ stats['kapot'] }}</span> <span class="stat-label">Kapot</span></div>
+    </div>
+    <div class="occ-bar-wrap">
+        {% set pct_b = (stats['bezet'] / 50 * 100)|int %}
+        {% set pct_k = (stats['kapot'] / 50 * 100)|int %}
+        <div class="occ-bar">
+            <div class="occ-seg occ-bezet" style="width:{{ pct_b }}%">{% if pct_b > 8 %}{{ pct_b }}%{% endif %}</div>
+            <div class="occ-seg occ-kapot" style="width:{{ pct_k }}%">{% if pct_k > 8 %}{{ pct_k }}%{% endif %}</div>
+        </div>
+        <span class="occ-label">Bezettingsgraad (groen = vrij)</span>
+    </div>
+</div>
+
+<!-- ── CHARTS ── -->
+<div class="charts-grid">
+    <div class="beheer-section chart-section">
+        <h2 class="section-title">Inkomsten per dag (€)</h2>
+        <canvas id="chartDay" height="220"></canvas>
+    </div>
+    <div class="beheer-section chart-section">
+        <h2 class="section-title">Inkomsten per week (€)</h2>
+        <canvas id="chartWeek" height="220"></canvas>
+    </div>
+</div>
+
+<!-- Rental count chart -->
+<div class="beheer-section">
+    <h2 class="section-title">Aantal verhuren per dag</h2>
+    <canvas id="chartCount" height="160"></canvas>
+</div>
+
+<!-- ── BROKEN CHAIRS ── -->
+{% if broken_chairs %}
+<div class="beheer-section">
+    <h2 class="section-title">🔧 Kapotte stoelen ({{ broken_chairs|length }})</h2>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Stoel</th>
+                    <th>Reden</th>
+                    <th>Status</th>
+                    <th>Actie</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for c in broken_chairs %}
+            <tr>
+                <td><strong>Stoel {{ c['id'] }}</strong></td>
+                <td class="muted">{{ c['repair_reason'] or '–' }}</td>
+                <td>
+                    <span class="repair-badge repair-{{ c['repair_status'] or 'kapot' }}">
+                        {% if c['repair_status'] == 'in_reparatie' %}🛠️ In reparatie
+                        {% elif c['repair_status'] == 'gerepareerd' %}✅ Gerepareerd
+                        {% else %}🔴 Kapot{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <form method="POST" action="/repair-status/{{ c['id'] }}" class="inline-repair-form">
+                        <select name="repair_status" class="repair-select">
+                            <option value="kapot"        {% if c['repair_status']=='kapot'        %}selected{% endif %}>Kapot</option>
+                            <option value="in_reparatie" {% if c['repair_status']=='in_reparatie' %}selected{% endif %}>In reparatie</option>
+                            <option value="gerepareerd"  {% if c['repair_status']=='gerepareerd'  %}selected{% endif %}>Gerepareerd</option>
+                        </select>
+                        <button type="submit" class="btn btn-repair btn-sm">Opslaan</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- ── RECENT RENTALS ── -->
+<div class="beheer-section">
+    <h2 class="section-title">Recente verhuren</h2>
+    {% if recent %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr><th>#</th><th>Stoel</th><th>Klant</th><th>Tijdslot</th><th>Bedrag</th><th>Datum & tijd</th></tr>
+            </thead>
+            <tbody>
+            {% for r in recent %}
+            <tr>
+                <td class="muted">{{ r['id'] }}</td>
+                <td><strong>Stoel {{ r['chair_id'] }}</strong></td>
+                <td>{{ r['rented_by'] or '–' }}</td>
+                <td><span class="badge badge-ocean">{{ r['time_slot'] or '–' }}</span></td>
+                <td class="amount">€{{ "%.2f"|format(r['price']) }}</td>
+                <td class="muted">{{ r['date'] }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-state">Nog geen verhuren geregistreerd.</p>
+    {% endif %}
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Pass data from Jinja to JS
+const DAY_DATA  = {{ day_data  | tojson }};
+const WEEK_DATA = {{ week_data | tojson }};
+
+const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
+const gridColor  = () => isDark() ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)';
+const labelColor = () => isDark() ? '#a0b4be' : '#6b7f89';
+const oceanGrad  = (ctx) => {
+    const g = ctx.createLinearGradient(0, 0, 0, 300);
+    g.addColorStop(0, 'rgba(42,154,191,.85)');
+    g.addColorStop(1, 'rgba(15,63,82,.2)');
+    return g;
+};
+
+function baseOptions(title) {
+    return {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: ctx => ` €${ctx.parsed.y.toFixed(2)}`
+                }
+            }
+        },
+        scales: {
+            x: { grid: { color: gridColor() }, ticks: { color: labelColor() } },
+            y: { grid: { color: gridColor() }, ticks: { color: labelColor(), callback: v => '€' + v } }
+        }
+    };
+}
+
+// Day chart
+const ctxDay = document.getElementById('chartDay').getContext('2d');
+new Chart(ctxDay, {
+    type: 'bar',
+    data: {
+        labels: DAY_DATA.map(d => d.dag ? d.dag.slice(5) : ''),
+        datasets: [{
+            data: DAY_DATA.map(d => d.totaal),
+            backgroundColor: oceanGrad(ctxDay),
+            borderColor: 'rgba(42,154,191,1)',
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: baseOptions('Inkomsten per dag')
+});
+
+// Week chart
+const ctxWeek = document.getElementById('chartWeek').getContext('2d');
+new Chart(ctxWeek, {
+    type: 'bar',
+    data: {
+        labels: WEEK_DATA.map(d => d.week),
+        datasets: [{
+            data: WEEK_DATA.map(d => d.totaal),
+            backgroundColor: 'rgba(15,63,82,.7)',
+            borderColor: 'rgba(15,63,82,1)',
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: baseOptions('Inkomsten per week')
+});
+
+// Count chart (line)
+const ctxCount = document.getElementById('chartCount').getContext('2d');
+new Chart(ctxCount, {
+    type: 'line',
+    data: {
+        labels: DAY_DATA.map(d => d.dag ? d.dag.slice(5) : ''),
+        datasets: [{
+            label: 'Verhuren',
+            data: DAY_DATA.map(d => d.aantal),
+            borderColor: 'rgba(46,189,107,1)',
+            backgroundColor: 'rgba(46,189,107,.15)',
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: 'rgba(46,189,107,1)',
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { color: gridColor() }, ticks: { color: labelColor() } },
+            y: { grid: { color: gridColor() }, ticks: { color: labelColor(), stepSize: 1 } }
+        }
+    }
+});
+
+// Always-open toggle
+document.getElementById('always-open-btn')?.addEventListener('click', async function() {
+    const res  = await fetch('/toggle-always-open', { method: 'POST' });
+    const data = await res.json();
+    this.classList.toggle('active', data.always_open);
+    this.setAttribute('aria-pressed', data.always_open);
+    showToast(data.always_open ? '🔓 Altijd verhuurbaar ingeschakeld' : '🔒 Tijdregels weer actief', 'success');
+});
+</script>
+
+{% endblock %}
