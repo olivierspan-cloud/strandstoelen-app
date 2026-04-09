@@ -42,6 +42,9 @@
         </div>
 
         <form method="POST" action="/confirm-rent/{{ chair_id }}" class="cf-form" id="checkout-form">
+            <!-- Pass price/slot as hidden fields to avoid time-boundary bugs on POST -->
+            <input type="hidden" name="price_hidden" value="{{ price }}">
+            <input type="hidden" name="slot_hidden" value="{{ slot }}">
 
             <!-- Card preview -->
             <div class="card-preview" id="card-preview">

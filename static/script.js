@@ -124,7 +124,89 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 20000);
     }
 
-    // Broken modal
+    // ── AJAX REPAIR FORMS (no page reload) ──────────────
+    // Handles both .repair-inline (chair cards) and .repair-row-form (beheer table)
+    document.addEventListener("submit", async function(e) {
+        const form = e.target.closest(".repair-inline, .repair-row-form");
+        if (!form) return;
+        e.preventDefault();
+        const chairId   = form.dataset.chairId;
+        const sel       = form.querySelector("select");
+        const newStatus = sel.value;
+        const btn       = form.querySelector("button[type='submit']");
+        const origLabel = btn.textContent;
+        btn.disabled    = true;
+        btn.textContent = "…";
+
+        try {
+            const fd = new FormData();
+            fd.append("repair_status", newStatus);
+            const res  = await fetch(`/repair-status/${chairId}`, {
+                method:  "POST",
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+                body:    fd,
+            });
+            const data = await res.json();
+            if (!res.ok || data.error) {
+                window.showToast(data.error || "Fout bij opslaan.", "error");
+                return;
+            }
+
+            if (data.chair_status === "vrij") {
+                // Gerepareerd — remove the row/card after short delay
+                window.showToast(`Stoel ${chairId}: ${data.label} ✅`, "success");
+
+                // Remove from beheer table row if present
+                const row = form.closest("tr");
+                if (row) {
+                    row.style.transition = "opacity .4s";
+                    row.style.opacity = "0";
+                    setTimeout(() => row.remove(), 420);
+                }
+
+                // Update chair card on index page if present
+                const card = document.querySelector(`.chair-card[data-id="${chairId}"]`);
+                if (card) {
+                    setTimeout(() => window.location.reload(), 600);
+                    return;
+                }
+                return;
+            }
+
+            // Still kapot/in_reparatie — update card icon/label if on index page
+            const card = document.querySelector(`.chair-card[data-id="${chairId}"]`);
+            if (card) {
+                const lblEl  = card.querySelector(".cc-label");
+                const iconEl = card.querySelector(".cc-icon");
+                if (lblEl)  lblEl.textContent  = newStatus === "in_reparatie" ? "In reparatie" : "Kapot";
+                if (iconEl) iconEl.textContent  = newStatus === "in_reparatie" ? "🛠" : "🔧";
+            }
+
+            // Update repair tag in beheer table row if present
+            const row = form.closest("tr");
+            if (row) {
+                const tag = row.querySelector(".repair-tag");
+                if (tag) {
+                    const tagMap = {
+                        kapot:        { cls: "rt-kapot",        txt: "🔴 Kapot" },
+                        in_reparatie: { cls: "rt-in_reparatie", txt: "🛠 In reparatie" },
+                    };
+                    const t = tagMap[newStatus];
+                    if (t) {
+                        tag.className = `repair-tag ${t.cls}`;
+                        tag.textContent = t.txt;
+                    }
+                }
+            }
+
+            window.showToast(`Stoel ${chairId}: ${data.label}`, "success");
+        } catch {
+            window.showToast("Verbindingsfout bij opslaan.", "error");
+        } finally {
+            btn.disabled    = false;
+            btn.textContent = origLabel;
+        }
+    });
     const modal      = document.getElementById("broken-modal");
     const brokenForm = document.getElementById("broken-form");
     const modalChairN = document.getElementById("modal-chair-n");

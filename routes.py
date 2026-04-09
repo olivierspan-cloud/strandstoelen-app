@@ -119,10 +119,21 @@ def confirm_rent(id):
     if not chair or chair["status"] != "vrij":
         flash("Stoel niet meer beschikbaar.", "error")
         return redirect("/")
-    price, slot = get_price_and_slot()
-    if price is None:
-        flash("Verhuur buiten openingstijden.", "error")
-        return redirect("/")
+
+    # Price and slot are passed as hidden fields from the checkout form
+    # so they don't break if the time crosses a boundary during checkout.
+    try:
+        price = float(request.form.get("price_hidden", "0"))
+        slot  = request.form.get("slot_hidden", "")
+        if price not in (10.0, 12.5) or not slot:
+            raise ValueError
+    except (ValueError, TypeError):
+        # Fallback: recalculate; if outside hours redirect
+        price, slot = get_price_and_slot()
+        if price is None:
+            flash("Verhuur buiten openingstijden.", "error")
+            return redirect("/")
+
     # Card details are fake — just validate they're not empty
     card_name   = request.form.get("card_name","").strip()
     card_number = request.form.get("card_number","").strip().replace(" ","")
@@ -174,12 +185,23 @@ def broken_chair(id):
 
 @main_routes.route("/repair-status/<int:id>", methods=["POST"])
 def repair_status(id):
-    if not is_admin(): flash("Geen toegang.", "error"); return redirect("/")
+    if not is_admin():
+        return jsonify({"error": "Geen toegang"}), 403
     s = request.form.get("repair_status")
     if s not in ("kapot","in_reparatie","gerepareerd"):
-        flash("Ongeldige status.", "error"); return redirect("/beheer")
+        return jsonify({"error": "Ongeldige status"}), 400
     update_repair_status(id, s)
     labels = {"kapot":"Kapot","in_reparatie":"In reparatie","gerepareerd":"Gerepareerd ✅"}
+    # Check if AJAX request
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        chair = get_chair(id)
+        return jsonify({
+            "ok": True,
+            "label": labels[s],
+            "repair_status": s,
+            "chair_status": chair["status"] if chair else "vrij",
+        })
+    # Fallback: normal form post redirect
     flash(f"Stoel {id}: {labels[s]}", "success")
     return redirect("/beheer")
 

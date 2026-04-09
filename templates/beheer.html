@@ -5,7 +5,7 @@
 
 <section class="dash-hero">
     <h1 class="dash-title">Beheerdashboard</h1>
-    <p class="dash-sub">ZonneStrand Verhuur · Seizoen 2025</p>
+    <p class="dash-sub">ZonneStrand Verhuur · Seizoen 2026</p>
 </section>
 
 <!-- ══ REVENUE CARDS ══ -->
@@ -128,8 +128,8 @@
                     </span>
                 </td>
                 <td>
-                    <form method="POST" action="/repair-status/{{ c['id'] }}" class="repair-row-form">
-                        <select name="repair_status" class="repair-sel">
+                    <form class="repair-row-form" data-chair-id="{{ c['id'] }}">
+                        <select name="repair_status" class="repair-sel-wide">
                             <option value="kapot"        {% if c['repair_status']=='kapot'        %}selected{% endif %}>Kapot</option>
                             <option value="in_reparatie" {% if c['repair_status']=='in_reparatie' %}selected{% endif %}>In reparatie</option>
                             <option value="gerepareerd"  {% if c['repair_status']=='gerepareerd'  %}selected{% endif %}>Gerepareerd</option>

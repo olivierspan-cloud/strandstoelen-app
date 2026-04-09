@@ -64,7 +64,7 @@ def seed(username, password, role):
 
 # ── VERANDER DIT naar jouw eigen gegevens ──
 seed("olivier",  "jouwwachtwoord", "admin")
-seed("admin",    "admin123",       "admin")
+seed("Admin",    "Zitkuil123",       "admin")
 
 conn.commit()
 conn.close()

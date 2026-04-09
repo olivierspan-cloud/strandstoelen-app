@@ -6,7 +6,7 @@
 <!-- ══ HERO ══ -->
 <section class="hero-section">
     <div class="hero-inner">
-        <div class="hero-badge">Zomerseizoen 2025</div>
+        <div class="hero-badge">Zomerseizoen 2026</div>
         <h1 class="hero-title">Jouw perfecte<br><em>stranddag</em> begint hier</h1>
         <p class="hero-copy">
             {% if always_open %}
@@ -115,13 +115,13 @@
 
         {% elif broken %}
             {% if role == 'admin' %}
-            <form method="POST" action="/repair-status/{{ cid }}" class="repair-inline">
+            <form class="repair-inline" data-chair-id="{{ cid }}">
                 <select name="repair_status" class="repair-sel">
                     <option value="kapot"        {% if chair['repair_status']=='kapot'        %}selected{% endif %}>Kapot</option>
-                    <option value="in_reparatie" {% if chair['repair_status']=='in_reparatie' %}selected{% endif %}>In reparatie</option>
-                    <option value="gerepareerd"  {% if chair['repair_status']=='gerepareerd'  %}selected{% endif %}>Gerepareerd</option>
+                    <option value="in_reparatie" {% if chair['repair_status']=='in_reparatie' %}selected{% endif %}>Reparatie</option>
+                    <option value="gerepareerd"  {% if chair['repair_status']=='gerepareerd'  %}selected{% endif %}>Klaar</option>
                 </select>
-                <button type="submit" class="btn btn-repair btn-xs">Opslaan</button>
+                <button type="submit" class="btn btn-repair btn-xs">✓</button>
             </form>
             {% else %}
             <span class="cc-chip chip-kapot">
