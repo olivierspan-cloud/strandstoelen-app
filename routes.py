@@ -106,48 +106,75 @@ def checkout(id):
     if price is None:
         flash("Verhuur alleen mogelijk tussen 10:00 en 18:00.", "error")
         return redirect("/")
+    # Ensure they are the right Python types before passing to template
+    price = float(price)
+    slot  = str(slot)
     return render_template("checkout.html",
-        chair_id=id, price=price, slot=slot,
-        user=session.get("user"), role=session.get("role"))
+        chair_id=id,
+        price=price,
+        slot=slot,
+        user=session.get("user"),
+        role=session.get("role"))
 
 @main_routes.route("/confirm-rent/<int:id>", methods=["POST"])
 def confirm_rent(id):
     """Process the checkout form and complete the rental."""
     if not logged_in():
         return redirect("/login")
+
     chair = get_chair(id)
     if not chair or chair["status"] != "vrij":
         flash("Stoel niet meer beschikbaar.", "error")
         return redirect("/")
 
-    # Price and slot are passed as hidden fields from the checkout form
-    # so they don't break if the time crosses a boundary during checkout.
+    # Retrieve price/slot from hidden fields; always cast to correct types
     try:
-        price = float(request.form.get("price_hidden", "0"))
-        slot  = request.form.get("slot_hidden", "")
-        if price not in (10.0, 12.5) or not slot:
-            raise ValueError
-    except (ValueError, TypeError):
-        # Fallback: recalculate; if outside hours redirect
+        price = float(request.form.get("price_hidden") or 0)
+        slot  = str(request.form.get("slot_hidden") or "").strip()
+        # Sanity-check: only allow the two valid prices
+        if price not in (10.0, 12.5):
+            raise ValueError(f"Unexpected price: {price}")
+        if not slot:
+            raise ValueError("Empty slot")
+    except Exception:
+        # Hidden fields missing/corrupt — recalculate from current time
         price, slot = get_price_and_slot()
         if price is None:
-            flash("Verhuur buiten openingstijden.", "error")
+            flash("Verhuur buiten openingstijden (voor 10:00 of na 18:00).", "error")
             return redirect("/")
 
-    # Card details are fake — just validate they're not empty
-    card_name   = request.form.get("card_name","").strip()
-    card_number = request.form.get("card_number","").strip().replace(" ","")
-    card_expiry = request.form.get("card_expiry","").strip()
-    card_cvv    = request.form.get("card_cvv","").strip()
-    if not all([card_name, len(card_number) >= 12, card_expiry, len(card_cvv) >= 3]):
-        flash("Vul alle betalingsgegevens correct in.", "error")
+    # Validate card fields (all fake, just check non-empty & length)
+    card_name   = request.form.get("card_name",   "").strip()
+    card_number = request.form.get("card_number",  "").strip().replace(" ", "")
+    card_expiry = request.form.get("card_expiry",  "").strip()
+    card_cvv    = request.form.get("card_cvv",     "").strip()
+
+    errors = []
+    if not card_name:                errors.append("Naam op kaart")
+    if len(card_number) < 12:        errors.append("Kaartnummer (min. 12 cijfers)")
+    if not card_expiry:              errors.append("Vervaldatum")
+    if len(card_cvv) < 3:            errors.append("CVV (min. 3 cijfers)")
+
+    if errors:
+        flash("Vul de volgende velden correct in: " + ", ".join(errors), "error")
         return redirect(f"/checkout/{id}")
+
+    # All good — commit the rental
     update_status(id, "bezet")
-    add_rental(id, price, slot, session["user"])
-    return render_template("payment_success.html",
-        chair_id=id, price=price, slot=slot,
-        user=session.get("user"), role=session.get("role"),
-        card_last4=card_number[-4:])
+    add_rental(id, float(price), slot, session["user"])
+
+    # card_last4: safe even if number is short
+    last4 = card_number[-4:] if len(card_number) >= 4 else card_number
+
+    return render_template(
+        "payment_success.html",
+        chair_id=id,
+        price=float(price),
+        slot=slot,
+        user=session.get("user"),
+        role=session.get("role"),
+        card_last4=last4,
+    )
 
 # ── CHAIR ACTIONS ─────────────────────────────────────────
 

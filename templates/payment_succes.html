@@ -24,15 +24,19 @@
                 </div>
                 <div class="receipt-row">
                     <span>Tijdslot</span>
-                    <strong>{{ slot }}</strong>
+                    <strong>{{ slot if slot else '—' }}</strong>
                 </div>
                 <div class="receipt-row">
                     <span>Bedrag</span>
-                    <strong>€{{ "%.2f"|format(price) }}</strong>
+                    <strong>€{{ "%.2f"|format(price|float) }}</strong>
                 </div>
                 <div class="receipt-row">
                     <span>Kaart eindigend op</span>
                     <strong>•••• {{ card_last4 }}</strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Klant</span>
+                    <strong>{{ user }}</strong>
                 </div>
                 <div class="receipt-row">
                     <span>Status</span>
@@ -42,10 +46,11 @@
         </div>
 
         <div class="success-actions">
-            <a href="/" class="btn btn-primary btn-lg">Terug naar overzicht</a>
+            <a href="/" class="btn btn-primary btn-lg">← Terug naar overzicht</a>
         </div>
         <p class="success-note">
-            Dit is een nep-betaling voor demonstratiedoeleinden. Geen echte transactie heeft plaatsgevonden.
+            Dit is een nep-betaling voor demonstratiedoeleinden.<br>
+            Er worden geen echte betalingen verwerkt.
         </p>
     </div>
 </div>

@@ -17,15 +17,15 @@
                 <strong>Strandstoel #{{ chair_id }}</strong>
                 <span>{{ slot }}</span>
             </div>
-            <div class="cs-item-price">€{{ "%.2f"|format(price) }}</div>
+            <div class="cs-item-price">€{{ "%.2f"|format(price|float) }}</div>
         </div>
         <div class="cs-divider"></div>
         <div class="cs-totals">
-            <div class="cs-row"><span>Subtotaal</span><span>€{{ "%.2f"|format(price) }}</span></div>
+            <div class="cs-row"><span>Subtotaal</span><span>€{{ "%.2f"|format(price|float) }}</span></div>
             <div class="cs-row"><span>Servicekosten</span><span>€0,00</span></div>
             <div class="cs-row cs-total-row">
                 <strong>Totaal</strong>
-                <strong class="cs-big-price">€{{ "%.2f"|format(price) }}</strong>
+                <strong class="cs-big-price">€{{ "%.2f"|format(price|float) }}</strong>
             </div>
         </div>
         <div class="cs-secure-badge">
@@ -117,7 +117,7 @@
 
             <!-- Submit -->
             <button type="submit" class="btn btn-pay" id="pay-btn">
-                <span id="pay-label">🔒 Betalen – €{{ "%.2f"|format(price) }}</span>
+                <span id="pay-label">🔒 Betalen – €{{ "%.2f"|format(price|float) }}</span>
                 <span id="pay-spinner" style="display:none">⟳ Verwerken…</span>
             </button>
 
