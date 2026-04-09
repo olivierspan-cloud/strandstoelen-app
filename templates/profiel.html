@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Mijn profiel – ZonneStrand{% endblock %}
+
+{% block content %}
+<div class="profile-scene">
+
+    <!-- ── PROFILE CARD ── -->
+    <div class="profile-card">
+        <div class="profile-card-bg" aria-hidden="true"></div>
+        <div class="profile-avatar">
+            {{ user[0]|upper }}
+        </div>
+        <div class="profile-identity">
+            <h1 class="profile-name">{{ user }}</h1>
+            <span class="profile-role-badge {% if role == 'admin' %}badge-admin{% else %}badge-klant{% endif %}">
+                {% if role == 'admin' %}♛ Beheerder{% else %}🌊 Strandgast{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- ── STAT PILLS ── -->
+    <div class="profile-stats">
+        <div class="ps-card">
+            <span class="ps-icon">🪑</span>
+            <span class="ps-num">{{ stats.total_rentals }}</span>
+            <span class="ps-label">Stoelen gehuurd</span>
+        </div>
+        <div class="ps-card">
+            <span class="ps-icon">💶</span>
+            <span class="ps-num">€{{ "%.2f"|format(stats.total_spent|float) }}</span>
+            <span class="ps-label">Totaal uitgegeven</span>
+        </div>
+        <div class="ps-card">
+            <span class="ps-icon">📅</span>
+            <span class="ps-num ps-num-sm">{{ stats.last_rental[:10] if stats.last_rental != '—' else '—' }}</span>
+            <span class="ps-label">Laatste verhuur</span>
+        </div>
+    </div>
+
+    <!-- ── RENTAL HISTORY ── -->
+    <div class="profile-section">
+        <h2 class="profile-section-title">Verhuurgeschiedenis</h2>
+
+        {% if rentals %}
+        <div class="profile-table-wrap">
+            <table class="profile-table">
+                <thead>
+                    <tr>
+                        <th>Stoel</th>
+                        <th>Tijdslot</th>
+                        <th>Bedrag</th>
+                        <th>Datum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for r in rentals %}
+                <tr>
+                    <td><strong>#{{ r['chair_id'] }}</strong></td>
+                    <td><span class="slot-pill">{{ r['time_slot'] or '—' }}</span></td>
+                    <td class="amount-cell">€{{ "%.2f"|format(r['price']|float) }}</td>
+                    <td class="muted-cell">{{ r['date'][:16] }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="profile-empty">
+            <span class="profile-empty-icon">🏖️</span>
+            <p>Je hebt nog geen stoelen gehuurd.</p>
+            <a href="/" class="btn btn-primary">Bekijk beschikbare stoelen</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="profile-back">
+        <a href="/" class="btn btn-ghost-dark">← Terug naar overzicht</a>
+    </div>
+</div>
+{% endblock %}

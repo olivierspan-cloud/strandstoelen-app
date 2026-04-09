@@ -1,5 +1,13 @@
 from flask import Blueprint, render_template, redirect, request, session, flash, jsonify
-from models import *
+from models import (
+    get_user, check_user_password, create_user, username_exists,
+    get_all_chairs, get_chair, update_status, add_rental,
+    mark_broken, update_repair_status, free_all_chairs,
+    get_active_rental, get_revenue_breakdown, get_recent_rentals,
+    get_chair_stats, get_rentals_per_day, get_rentals_per_week,
+    is_always_open, get_setting, set_setting,
+    get_user_rentals, get_user_stats,
+)
 from datetime import datetime
 
 main_routes = Blueprint("main", __name__)
@@ -68,6 +76,21 @@ def logout():
     session.clear()
     flash(f"Tot ziens, {name}! 👋", "info")
     return redirect("/")
+
+@main_routes.route("/profiel")
+def profiel():
+    if not logged_in():
+        flash("Je moet ingelogd zijn om je profiel te bekijken.", "error")
+        return redirect("/login")
+    username = session["user"]
+    stats    = get_user_stats(username)
+    rentals  = get_user_rentals(username, limit=10)
+    return render_template("profiel.html",
+        user=username,
+        role=session.get("role"),
+        stats=stats,
+        rentals=rentals,
+    )
 
 # ── INDEX ─────────────────────────────────────────────────
 

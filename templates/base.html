@@ -45,10 +45,10 @@
         </button>
 
         {% if session.get('user') %}
-        <div class="nav-user-pill {{ session.get('role') }}">
+        <a href="/profiel" class="nav-user-pill {{ session.get('role') }}" title="Mijn profiel">
             {% if session.get('role') == 'admin' %}<span class="crown">♛</span>{% endif %}
             {{ session.get('user') }}
-        </div>
+        </a>
         <a href="/logout" class="btn btn-ghost btn-sm">Uitloggen</a>
         {% else %}
         <a href="/login"    class="btn btn-ghost btn-sm">Inloggen</a>

@@ -124,7 +124,31 @@ def get_rentals_per_week(limit=8):
     conn.close()
     return [{"week": "W"+r["week"], "totaal": r["totaal"], "aantal": r["aantal"]} for r in rows]
 
-# ── SETTINGS ──────────────────────────────────────────────
+def get_user_rentals(username, limit=10):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM rentals WHERE rented_by=? ORDER BY date DESC LIMIT ?",
+        (username, limit)
+    ).fetchall()
+    conn.close(); return rows
+
+def get_user_stats(username):
+    conn = get_db()
+    r = conn.execute("""
+        SELECT
+            COUNT(*)        AS total_rentals,
+            SUM(price)      AS total_spent,
+            MAX(date)       AS last_rental
+        FROM rentals WHERE rented_by=?
+    """, (username,)).fetchone()
+    conn.close()
+    return {
+        "total_rentals": r["total_rentals"] or 0,
+        "total_spent":   r["total_spent"]   or 0.0,
+        "last_rental":   r["last_rental"]   or "—",
+    }
+
+
 def get_setting(key):
     conn = get_db()
     r = conn.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
