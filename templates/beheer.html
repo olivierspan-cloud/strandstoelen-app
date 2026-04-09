@@ -3,49 +3,49 @@
 
 {% block content %}
 
-<section class="dash-hero">
-    <h1 class="dash-title">Beheerdashboard</h1>
+<section class="dash-intro">
+    <h1 class="dash-heading">Beheerdashboard</h1>
     <p class="dash-sub">ZonneStrand Verhuur · Seizoen 2026</p>
 </section>
 
 <!-- ══ REVENUE CARDS ══ -->
-<div class="kpi-grid">
+<div class="kpi-row">
     <div class="kpi-card">
-        <span class="kpi-icon">☀️</span>
-        <span class="kpi-label">Vandaag</span>
-        <span class="kpi-val">€{{ "%.2f"|format(revenue['day']) }}</span>
+        <span class="kpi-bg-icon">☀️</span>
+        <span class="kpi-period">Vandaag</span>
+        <span class="kpi-amount">€{{ "%.2f"|format(revenue['day']) }}</span>
     </div>
     <div class="kpi-card kpi-accent">
-        <span class="kpi-icon">📅</span>
-        <span class="kpi-label">Deze week</span>
-        <span class="kpi-val">€{{ "%.2f"|format(revenue['week']) }}</span>
+        <span class="kpi-bg-icon">📅</span>
+        <span class="kpi-period">Deze week</span>
+        <span class="kpi-amount">€{{ "%.2f"|format(revenue['week']) }}</span>
     </div>
     <div class="kpi-card">
-        <span class="kpi-icon">🗓</span>
-        <span class="kpi-label">Deze maand</span>
-        <span class="kpi-val">€{{ "%.2f"|format(revenue['month']) }}</span>
+        <span class="kpi-bg-icon">🗓</span>
+        <span class="kpi-period">Deze maand</span>
+        <span class="kpi-amount">€{{ "%.2f"|format(revenue['month']) }}</span>
     </div>
     <div class="kpi-card kpi-warm">
-        <span class="kpi-icon">🌊</span>
-        <span class="kpi-label">Seizoen</span>
-        <span class="kpi-val">€{{ "%.2f"|format(revenue['season']) }}</span>
+        <span class="kpi-bg-icon">🌊</span>
+        <span class="kpi-period">Seizoen</span>
+        <span class="kpi-amount">€{{ "%.2f"|format(revenue['season']) }}</span>
     </div>
 </div>
 
 <!-- ══ CONTROLS ══ -->
-<div class="dash-controls">
-    <div class="control-tile">
+<div class="ctrl-row">
+    <div class="control-card">
         <div>
             <strong>🔓 Altijd verhuurbaar</strong>
             <small>Override van openingstijden</small>
         </div>
-        <button class="toggle-pill {% if always_open %}on{% endif %}"
+        <button class="toggle-switch {% if always_open %}is-on{% endif %}"
                 id="always-open-btn" aria-pressed="{{ 'true' if always_open else 'false' }}">
             <span class="tp-thumb"></span>
             <span class="tp-label">{{ 'Aan' if always_open else 'Uit' }}</span>
         </button>
     </div>
-    <div class="control-tile">
+    <div class="control-card">
         <div>
             <strong>🌅 Einde dag</strong>
             <small>Alle bezette stoelen vrijmaken</small>
@@ -56,26 +56,26 @@
 </div>
 
 <!-- ══ CHAIR STATUS BAR ══ -->
-<div class="dash-section">
-    <h2 class="ds-title">Stoeloverzicht</h2>
-    <div class="occ-stats">
-        <div class="occ-stat s-vrij">
-            <span class="occ-n">{{ stats['vrij'] }}</span><span>Vrij</span>
+<div class="section-card">
+    <h2 class="section-heading">Stoeloverzicht</h2>
+    <div class="occ-stats-row">
+        <div class="occ-pill s-vrij">
+            <span class="occ-pill-n">{{ stats['vrij'] }}</span><span>Vrij</span>
         </div>
-        <div class="occ-stat s-bezet">
-            <span class="occ-n">{{ stats['bezet'] }}</span><span>Bezet</span>
+        <div class="occ-pill s-bezet">
+            <span class="occ-pill-n">{{ stats['bezet'] }}</span><span>Bezet</span>
         </div>
-        <div class="occ-stat s-kapot">
-            <span class="occ-n">{{ stats['kapot'] }}</span><span>Kapot</span>
+        <div class="occ-pill s-kapot">
+            <span class="occ-pill-n">{{ stats['kapot'] }}</span><span>Kapot</span>
         </div>
     </div>
     {% set pb = (stats['bezet']/50*100)|int %}
     {% set pk = (stats['kapot']/50*100)|int %}
-    <div class="occ-bar-outer">
-        <div class="occ-fill fill-bezet" style="width:{{ pb }}%">
+    <div class="occ-bar">
+        <div class="occ-segment fill-bezet" style="width:{{ pb }}%">
             {% if pb > 7 %}{{ pb }}%{% endif %}
         </div>
-        <div class="occ-fill fill-kapot" style="width:{{ pk }}%">
+        <div class="occ-segment fill-kapot" style="width:{{ pk }}%">
             {% if pk > 7 %}{{ pk }}%{% endif %}
         </div>
     </div>
@@ -83,35 +83,35 @@
 </div>
 
 <!-- ══ CHARTS ══ -->
-<div class="dash-section">
+<div class="section-card">
     <div class="chart-header-row">
-        <h2 class="ds-title">Inkomsten & verhuren</h2>
+        <h2 class="section-heading">Inkomsten & verhuren</h2>
         <button class="btn btn-demo-chart" id="demo-chart-btn" type="button">
             📊 Voorbeeldgrafiek
         </button>
     </div>
-    <div class="charts-duo">
-        <div class="chart-card">
-            <p class="chart-label">Inkomsten per dag (€)</p>
+    <div class="chart-duo">
+        <div class="chart-box">
+            <p class="chart-box-label">Inkomsten per dag (€)</p>
             <canvas id="chartDay" height="200"></canvas>
         </div>
-        <div class="chart-card">
-            <p class="chart-label">Verhuren per dag (aantal)</p>
+        <div class="chart-box">
+            <p class="chart-box-label">Verhuren per dag (aantal)</p>
             <canvas id="chartCount" height="200"></canvas>
         </div>
     </div>
     <div class="chart-card chart-full">
-        <p class="chart-label">Inkomsten per week (€)</p>
+        <p class="chart-box-label">Inkomsten per week (€)</p>
         <canvas id="chartWeek" height="120"></canvas>
     </div>
 </div>
 
 <!-- ══ BROKEN CHAIRS ══ -->
 {% if broken_chairs %}
-<div class="dash-section">
-    <h2 class="ds-title">🔧 Kapotte stoelen <span class="count-badge">{{ broken_chairs|length }}</span></h2>
-    <div class="table-scroll">
-        <table class="dash-table">
+<div class="section-card">
+    <h2 class="section-heading">🔧 Kapotte stoelen <span class="count-badge">{{ broken_chairs|length }}</span></h2>
+    <div class="dtable-wrap">
+        <table class="dtable">
             <thead>
                 <tr><th>Stoel</th><th>Reden</th><th>Status</th><th>Actie</th></tr>
             </thead>
@@ -119,7 +119,7 @@
             {% for c in broken_chairs %}
             <tr>
                 <td><strong>#{{ c['id'] }}</strong></td>
-                <td class="td-muted">{{ c['repair_reason'] or '—' }}</td>
+                <td class="td-dim">{{ c['repair_reason'] or '—' }}</td>
                 <td>
                     <span class="repair-tag rt-{{ c['repair_status'] or 'kapot' }}">
                         {% if c['repair_status']=='in_reparatie' %}🛠 In reparatie
@@ -128,7 +128,7 @@
                     </span>
                 </td>
                 <td>
-                    <form class="repair-row-form" data-chair-id="{{ c['id'] }}">
+                    <form class="repair-row repair-row-form" data-chair-id="{{ c['id'] }}">
                         <select name="repair_status" class="repair-sel-wide">
                             <option value="kapot"        {% if c['repair_status']=='kapot'        %}selected{% endif %}>Kapot</option>
                             <option value="in_reparatie" {% if c['repair_status']=='in_reparatie' %}selected{% endif %}>In reparatie</option>
@@ -146,28 +146,28 @@
 {% endif %}
 
 <!-- ══ RECENT RENTALS ══ -->
-<div class="dash-section">
-    <h2 class="ds-title">Recente verhuren</h2>
+<div class="section-card">
+    <h2 class="section-heading">Recente verhuren</h2>
     {% if recent %}
-    <div class="table-scroll">
-        <table class="dash-table">
+    <div class="dtable-wrap">
+        <table class="dtable">
             <thead><tr><th>#</th><th>Stoel</th><th>Klant</th><th>Slot</th><th>Bedrag</th><th>Datum</th></tr></thead>
             <tbody>
             {% for r in recent %}
             <tr>
-                <td class="td-muted">{{ r['id'] }}</td>
+                <td class="td-dim">{{ r['id'] }}</td>
                 <td><strong>#{{ r['chair_id'] }}</strong></td>
                 <td>{{ r['rented_by'] or '—' }}</td>
                 <td><span class="slot-tag">{{ r['time_slot'] or '—' }}</span></td>
-                <td class="td-amount">€{{ "%.2f"|format(r['price']) }}</td>
-                <td class="td-muted">{{ r['date'] }}</td>
+                <td class="amount-txt">€{{ "%.2f"|format(r['price']) }}</td>
+                <td class="td-dim">{{ r['date'] }}</td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
     {% else %}
-    <p class="empty-msg">Nog geen verhuren geregistreerd.</p>
+    <p class="empty-state">Nog geen verhuren geregistreerd.</p>
     {% endif %}
 </div>
 
@@ -316,7 +316,7 @@ document.getElementById('demo-chart-btn').addEventListener('click', function() {
 document.getElementById('always-open-btn')?.addEventListener('click', async function() {
     const res  = await fetch('/toggle-always-open', { method: 'POST' });
     const data = await res.json();
-    this.classList.toggle('on', data.always_open);
+    this.classList.toggle('is-on', data.always_open);
     this.setAttribute('aria-pressed', data.always_open);
     this.querySelector('.tp-label').textContent = data.always_open ? 'Aan' : 'Uit';
     window.showToast(data.always_open ? '🔓 Altijd verhuurbaar ingeschakeld' : '🔒 Tijdregels actief', 'success');

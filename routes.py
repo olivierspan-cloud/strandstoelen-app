@@ -6,7 +6,7 @@ from models import (
     get_active_rental, get_revenue_breakdown, get_recent_rentals,
     get_chair_stats, get_rentals_per_day, get_rentals_per_week,
     is_always_open, get_setting, set_setting,
-    get_user_rentals, get_user_stats,
+    get_user_rentals, get_user_stats, update_avatar, get_avatar,
 )
 from datetime import datetime
 
@@ -51,6 +51,7 @@ def register():
             user = get_user(u)
             session["user"] = user["username"]
             session["role"] = user["role"]
+            session["avatar_emoji"] = "🌊"
             flash(f"Welkom, {u}! Account aangemaakt. 🎉", "success")
             return redirect("/")
     return render_template("register.html")
@@ -65,6 +66,8 @@ def login():
         if user and check_user_password(user, p):
             session["user"] = user["username"]
             session["role"] = user["role"]
+            av = get_avatar(user["username"])
+            session["avatar_emoji"] = AVATARS.get(av, "🌊")
             flash(f"Welkom terug, {user['username']}! 👋", "success")
             return redirect("/")
         flash("Onjuiste inloggegevens.", "error")
@@ -77,6 +80,15 @@ def logout():
     flash(f"Tot ziens, {name}! 👋", "info")
     return redirect("/")
 
+AVATARS = {
+    "wave":      "🌊", "sun":       "☀️", "umbrella":  "⛱️",
+    "surf":      "🏄", "shell":     "🐚", "starfish":  "⭐",
+    "crab":      "🦀", "fish":      "🐠", "dolphin":   "🐬",
+    "coconut":   "🥥", "anchor":    "⚓", "sailboat":  "⛵",
+    "flamingo":  "🦩", "ice_cream": "🍦", "sunglasses":"😎",
+    "palm":      "🌴", "volleyball":"🏐", "sandcastle":"🏖️",
+}
+
 @main_routes.route("/profiel")
 def profiel():
     if not logged_in():
@@ -84,13 +96,28 @@ def profiel():
         return redirect("/login")
     username = session["user"]
     stats    = get_user_stats(username)
-    rentals  = get_user_rentals(username, limit=10)
+    rentals  = get_user_rentals(username, limit=15)
+    avatar   = get_avatar(username)
     return render_template("profiel.html",
         user=username,
         role=session.get("role"),
         stats=stats,
         rentals=rentals,
+        avatar=avatar,
+        avatars=AVATARS,
     )
+
+@main_routes.route("/profiel/avatar", methods=["POST"])
+def save_avatar():
+    if not logged_in():
+        return jsonify({"error": "Niet ingelogd"}), 401
+    choice = request.form.get("avatar", "wave")
+    if choice not in AVATARS:
+        return jsonify({"error": "Ongeldig avatar"}), 400
+    update_avatar(session["user"], choice)
+    emoji = AVATARS[choice]
+    session["avatar_emoji"] = emoji
+    return jsonify({"ok": True, "emoji": emoji, "key": choice})
 
 # ── INDEX ─────────────────────────────────────────────────
 

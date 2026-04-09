@@ -8,37 +8,36 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body class="auth-body">
-<div class="ocean-bg" aria-hidden="true">
-    <div class="wave w1"></div><div class="wave w2"></div><div class="wave w3"></div>
+<div class="grain-overlay" aria-hidden="true"></div>
+<div class="ambient-bg" aria-hidden="true">
+    <div class="ambient-orb orb-1"></div><div class="ambient-orb orb-2"></div>
 </div>
-<div class="auth-scene">
+<div class="auth-container">
     <div class="auth-card">
-        <div class="auth-card-top">
-            <div class="auth-emblem">🪑</div>
-            <h1 class="auth-title">Account aanmaken</h1>
-            <p class="auth-sub">Gratis registreren · Meteen huren</p>
-        </div>
+        <div class="auth-emblem">🪑</div>
+        <h1 class="auth-heading">Account aanmaken</h1>
+        <p class="auth-subheading">Gratis registreren · Meteen huren</p>
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}{% for cat, msg in messages %}
           <div class="alert alert-{{ cat }}">{{ msg }}</div>
           {% endfor %}{% endif %}
         {% endwith %}
         <form method="POST" class="auth-form">
-            <div class="field-group">
-                <label>Gebruikersnaam <span class="field-hint">min. 3 tekens</span></label>
-                <input type="text" name="username" placeholder="Kies een naam" required minlength="3" maxlength="30" autofocus>
+            <div class="field">
+                <label class="field-label">Gebruikersnaam <span class="field-hint">min. 3 tekens</span></label>
+                <input type="text" name="username" class="field-control" placeholder="Kies een naam" required minlength="3" maxlength="30" autofocus>
             </div>
-            <div class="field-group">
-                <label>Wachtwoord <span class="field-hint">min. 4 tekens</span></label>
-                <input type="password" name="password" placeholder="Kies een wachtwoord" required minlength="4">
+            <div class="field">
+                <label class="field-label">Wachtwoord <span class="field-hint">min. 4 tekens</span></label>
+                <input type="password" name="password" class="field-control" placeholder="Kies een wachtwoord" required minlength="4">
             </div>
-            <div class="field-group">
-                <label>Bevestig wachtwoord</label>
-                <input type="password" name="confirm" placeholder="Herhaal wachtwoord" required>
+            <div class="field">
+                <label class="field-label">Bevestig wachtwoord</label>
+                <input type="password" name="confirm" class="field-control" placeholder="Herhaal wachtwoord" required>
             </div>
-            <button type="submit" class="btn btn-primary btn-full btn-lg">Account aanmaken →</button>
+            <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:.5rem">Account aanmaken →</button>
         </form>
-        <p class="auth-footer-link">Al een account? <a href="/login">Inloggen</a></p>
+        <p class="auth-switch">Al een account? <a href="/login">Inloggen</a></p>
     </div>
 </div>
 <script src="/static/script.js"></script>

@@ -148,6 +148,29 @@ def get_user_stats(username):
         "last_rental":   r["last_rental"]   or "—",
     }
 
+def update_avatar(username, avatar_choice):
+    """Store user's chosen avatar emoji key."""
+    conn = get_db()
+    # Add avatar column if it doesn't exist yet (safe migration)
+    try:
+        conn.execute("ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT 'wave'")
+        conn.commit()
+    except Exception:
+        pass
+    conn.execute("UPDATE users SET avatar=? WHERE username=?", (avatar_choice, username))
+    conn.commit()
+    conn.close()
+
+def get_avatar(username):
+    conn = get_db()
+    try:
+        r = conn.execute("SELECT avatar FROM users WHERE username=?", (username,)).fetchone()
+        conn.close()
+        return r["avatar"] if r and r["avatar"] else "wave"
+    except Exception:
+        conn.close()
+        return "wave"
+
 
 def get_setting(key):
     conn = get_db()

@@ -8,33 +8,32 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body class="auth-body">
-<div class="ocean-bg" aria-hidden="true">
-    <div class="wave w1"></div><div class="wave w2"></div><div class="wave w3"></div>
+<div class="grain-overlay" aria-hidden="true"></div>
+<div class="ambient-bg" aria-hidden="true">
+    <div class="ambient-orb orb-1"></div><div class="ambient-orb orb-2"></div>
 </div>
-<div class="auth-scene">
+<div class="auth-container">
     <div class="auth-card">
-        <div class="auth-card-top">
-            <div class="auth-emblem">🏖</div>
-            <h1 class="auth-title">ZonneStrand<span class="brand-accent"> Verhuur</span></h1>
-            <p class="auth-sub">Welkom terug — log in om te beginnen</p>
-        </div>
+        <div class="auth-emblem">🏖️</div>
+        <h1 class="auth-heading">ZonneStrand Verhuur</h1>
+        <p class="auth-subheading">Welkom terug — log in om verder te gaan</p>
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}{% for cat, msg in messages %}
           <div class="alert alert-{{ cat }}">{{ msg }}</div>
           {% endfor %}{% endif %}
         {% endwith %}
         <form method="POST" class="auth-form">
-            <div class="field-group">
-                <label>Gebruikersnaam</label>
-                <input type="text" name="username" placeholder="Jouw naam" required autofocus>
+            <div class="field">
+                <label class="field-label">Gebruikersnaam</label>
+                <input type="text" name="username" class="field-control" placeholder="Jouw naam" required autofocus>
             </div>
-            <div class="field-group">
-                <label>Wachtwoord</label>
-                <input type="password" name="password" placeholder="••••••••" required>
+            <div class="field">
+                <label class="field-label">Wachtwoord</label>
+                <input type="password" name="password" class="field-control" placeholder="••••••••" required>
             </div>
-            <button type="submit" class="btn btn-primary btn-full btn-lg">Inloggen →</button>
+            <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:.5rem">Inloggen →</button>
         </form>
-        <p class="auth-footer-link">Nog geen account? <a href="/register">Registreer gratis</a></p>
+        <p class="auth-switch">Nog geen account? <a href="/register">Registreer gratis</a></p>
     </div>
 </div>
 <script src="/static/script.js"></script>
