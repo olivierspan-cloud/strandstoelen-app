@@ -163,18 +163,8 @@ def confirm_rent(id):
     update_status(id, "bezet")
     add_rental(id, float(price), slot, session["user"])
 
-    # card_last4: safe even if number is short
-    last4 = card_number[-4:] if len(card_number) >= 4 else card_number
-
-    return render_template(
-        "payment_success.html",
-        chair_id=id,
-        price=float(price),
-        slot=slot,
-        user=session.get("user"),
-        role=session.get("role"),
-        card_last4=last4,
-    )
+    flash(f"Stoel {id} succesvol gehuurd voor €{float(price):.2f} ({slot}). Geniet van je dag! ☀️", "success")
+    return redirect("/")
 
 # ── CHAIR ACTIONS ─────────────────────────────────────────
 
