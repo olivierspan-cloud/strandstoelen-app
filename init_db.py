@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
     id       INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT    UNIQUE NOT NULL,
     password TEXT    NOT NULL,
-    role     TEXT    NOT NULL DEFAULT 'klant'
+    role     TEXT    NOT NULL DEFAULT 'klant',
+    avatar   TEXT    DEFAULT 'wave'
 );
 
 CREATE TABLE IF NOT EXISTS chairs (
@@ -30,15 +31,37 @@ CREATE TABLE IF NOT EXISTS rentals (
     FOREIGN KEY (chair_id) REFERENCES chairs(id)
 );
 
+CREATE TABLE IF NOT EXISTS reservations (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    chair_id    INTEGER NOT NULL,
+    date        TEXT    NOT NULL,
+    time_slot   TEXT    NOT NULL,
+    price       REAL    NOT NULL,
+    reserved_by TEXT    NOT NULL,
+    created_at  TEXT    NOT NULL,
+    FOREIGN KEY (chair_id) REFERENCES chairs(id)
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    username   TEXT NOT NULL,
+    message    TEXT NOT NULL,
+    type       TEXT NOT NULL DEFAULT 'info',
+    created_at TEXT NOT NULL,
+    is_read    INTEGER NOT NULL DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS settings (
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
 """)
 
+# Default settings
 cur.execute("INSERT OR IGNORE INTO settings (key,value) VALUES ('always_open','false')")
+cur.execute("INSERT OR IGNORE INTO settings (key,value) VALUES ('onboarding_enabled','true')")
 
-# Trigger: reset bezet→vrij na 18:00
+# Trigger: reset bezet→vrij after 18:00
 cur.execute("""
 CREATE TRIGGER IF NOT EXISTS reset_after_18
 AFTER INSERT ON rentals
@@ -58,13 +81,15 @@ if cur.fetchone()[0] == 0:
 def seed(username, password, role):
     cur.execute("SELECT id FROM users WHERE username=?", (username,))
     if not cur.fetchone():
-        cur.execute("INSERT INTO users (username,password,role) VALUES (?,?,?)",
-                    (username, generate_password_hash(password), role))
+        cur.execute(
+            "INSERT INTO users (username,password,role) VALUES (?,?,?)",
+            (username, generate_password_hash(password), role)
+        )
         print(f"  Gebruiker: {username} ({role})")
 
-# ── VERANDER DIT naar jouw eigen gegevens ──
-seed("olivier",  "jouwwachtwoord", "admin")
-seed("Admin",    "Zitkuil123",       "admin")
+# ── VERANDER DIT naar jouw eigen gegevens ──────────────
+seed("olivier", "jouwwachtwoord", "admin")
+seed("admin",   "admin123",       "admin")
 
 conn.commit()
 conn.close()

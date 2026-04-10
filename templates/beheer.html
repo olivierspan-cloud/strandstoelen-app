@@ -47,11 +47,10 @@
     </div>
     <div class="control-card">
         <div>
-            <strong>🌅 Einde dag</strong>
-            <small>Alle bezette stoelen vrijmaken</small>
+            <strong>📥 Export CSV</strong>
+            <small>Download alle verhuren als spreadsheet</small>
         </div>
-        <a href="/free-all" class="btn btn-endofday-dash"
-           data-confirm="Alle bezette stoelen vrijmaken?">Uitvoeren →</a>
+        <a href="/beheer/export-csv" class="btn btn-primary btn-sm">Download →</a>
     </div>
 </div>
 
@@ -321,5 +320,80 @@ document.getElementById('always-open-btn')?.addEventListener('click', async func
     this.querySelector('.tp-label').textContent = data.always_open ? 'Aan' : 'Uit';
     window.showToast(data.always_open ? '🔓 Altijd verhuurbaar ingeschakeld' : '🔒 Tijdregels actief', 'success');
 });
+
+// ── Heatmap chart (feature 6) ──────────────────────────────
+const HEATMAP = {{ heatmap | tojson }};
+const ctxHeat = document.getElementById('chartHeat')?.getContext('2d');
+if (ctxHeat && HEATMAP.length) {
+    const maxH = Math.max(...HEATMAP.map(h => h.count), 1);
+    new Chart(ctxHeat, {
+        type: 'bar',
+        data: {
+            labels: HEATMAP.map(h => h.hour + ':00'),
+            datasets: [{
+                data: HEATMAP.map(h => h.count),
+                backgroundColor: HEATMAP.map(h => {
+                    const intensity = h.count / maxH;
+                    return `rgba(45,88,120,${0.15 + intensity * 0.75})`;
+                }),
+                borderRadius: 5,
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: {
+                callbacks: { label: c => ` ${c.parsed.y} verhuren` }
+            }},
+            scales: {
+                x: { grid: { color: gc() }, ticks: { color: tc() } },
+                y: { grid: { color: gc() }, ticks: { color: tc(), stepSize: 1 }, beginAtZero: true }
+            }
+        }
+    });
+}
 </script>
+
+<!-- ── HEATMAP SECTION (feature 6) ── -->
+<div class="section-card" style="margin-top:1.5rem">
+    <div class="section-heading">
+        <div class="section-heading-left">🔥 Drukste uren van de dag</div>
+    </div>
+    <p style="font-size:.85rem;color:var(--text-tertiary);margin-bottom:1rem">
+        Gemiddeld aantal verhuren per uur op basis van alle historische data.
+    </p>
+    <div class="chart-box">
+        <canvas id="chartHeat" height="140"></canvas>
+    </div>
+</div>
+
+<!-- ── RESERVATIONS OVERVIEW ── -->
+{% if all_reservations %}
+<div class="section-card" style="margin-top:1.5rem">
+    <div class="section-heading">
+        <div class="section-heading-left">📅 Reserveringen overzicht</div>
+        <span class="ps-count" style="font-size:.78rem;color:var(--text-tertiary);background:var(--surface-alt);padding:.2rem .65rem;border-radius:999px;border:1px solid var(--border)">
+            {{ all_reservations|length }}
+        </span>
+    </div>
+    <div class="dtable-wrap">
+        <table class="dtable">
+            <thead><tr><th>Stoel</th><th>Datum</th><th>Tijdslot</th><th>Prijs</th><th>Gereserveerd door</th><th>Aangemaakt</th></tr></thead>
+            <tbody>
+            {% for r in all_reservations %}
+            <tr>
+                <td><strong>#{{ r['chair_id'] }}</strong></td>
+                <td>{{ r['date'] }}</td>
+                <td><span class="slot-badge">{{ r['time_slot'] }}</span></td>
+                <td class="amount-txt">€{{ "%.2f"|format(r['price']|float) }}</td>
+                <td>{{ r['reserved_by'] }}</td>
+                <td class="td-dim">{{ r['created_at'][:16] }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Reserveren – ZonneStrand{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <div class="ph-eyebrow">📅 Reserveringen</div>
+    <h1 class="ph-title">Reserveer een strandstoel</h1>
+    <p class="ph-sub">Kies een stoel, datum en tijdslot voor de komende 14 dagen.</p>
+</div>
+
+<div class="reserveer-layout">
+
+    <!-- ─ FORM ─ -->
+    <div class="res-form-card">
+        <h2 class="rfc-title">Nieuwe reservering</h2>
+        <form method="POST" action="/reserveer" class="res-form">
+
+            <div class="field">
+                <label class="field-label">Stoelnummer</label>
+                <select name="chair_id" class="field-control" required>
+                    <option value="" disabled selected>— Kies een stoel —</option>
+                    {% for chair in chairs %}
+                    {% if chair['status'] == 'vrij' %}
+                    <option value="{{ chair['id'] }}">Stoel {{ chair['id'] }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label class="field-label">Datum</label>
+                <select name="res_date" class="field-control" required>
+                    <option value="" disabled selected>— Kies een datum —</option>
+                    {% for d in days %}
+                    <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label class="field-label">Tijdslot &amp; prijs</label>
+                <div class="slot-options">
+                    {% for slot, price in time_slots %}
+                    <label class="slot-option">
+                        <input type="radio" name="time_slot" value="{{ slot }}" required>
+                        <span class="slot-opt-body">
+                            <span class="slot-opt-time">{{ slot }}</span>
+                            <span class="slot-opt-price">€{{ "%.2f"|format(price) }}</span>
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full btn-lg">
+                Reservering bevestigen →
+            </button>
+        </form>
+    </div>
+
+    <!-- ─ INFO ─ -->
+    <div class="res-info">
+        <div class="res-info-card">
+            <div class="ric-icon">💡</div>
+            <h3 class="ric-title">Hoe werkt het?</h3>
+            <ol class="ric-steps">
+                <li>Kies een beschikbare stoel</li>
+                <li>Selecteer een datum (max. 14 dagen vooruit)</li>
+                <li>Kies je tijdslot</li>
+                <li>Bevestig — de stoel is voor jou gereserveerd!</li>
+            </ol>
+        </div>
+        <div class="res-info-card">
+            <div class="ric-icon">💶</div>
+            <h3 class="ric-title">Tarieven</h3>
+            <div class="ric-prices">
+                {% for slot, price in time_slots %}
+                <div class="ric-price-row">
+                    <span>{{ slot }}</span>
+                    <strong>€{{ "%.2f"|format(price) }}</strong>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="ric-note">Betaling op de dag zelf aan de kassa.</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

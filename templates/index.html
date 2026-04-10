@@ -40,6 +40,13 @@
         <button class="filt" data-filter="bezet">🟠 Bezet</button>
         <button class="filt" data-filter="kapot">🔴 Kapot</button>
     </div>
+    <!-- Search bar (feature 8) -->
+    <div class="chair-search-wrap">
+        <input type="number" id="chair-search" class="chair-search-input"
+               placeholder="🔍 Stoelnummer…" min="1" max="50"
+               aria-label="Zoek op stoelnummer">
+        <button class="chair-search-clear" id="search-clear" style="display:none" aria-label="Wis zoekopdracht">✕</button>
+    </div>
     <div class="controls-end">
         {% if role == 'admin' %}
         <a href="/free-all" class="btn btn-eod btn-sm"
@@ -163,3 +170,50 @@
 </div>
 
 {% endblock %}
+
+<!-- ONBOARDING MODAL (feature 7) -->
+{% if show_onboarding %}
+<div class="modal-backdrop" id="onboarding-modal" aria-modal="true" role="dialog">
+    <div class="modal-panel onboarding-panel">
+        <div class="ob-steps">
+            <div class="ob-step is-active" id="ob-step-1">
+                <div class="ob-icon">🏖️</div>
+                <h2 class="ob-title">Welkom bij ZonneStrand!</h2>
+                <p class="ob-text">Je kunt hier eenvoudig een strandstoel huren of reserveren voor een toekomstige dag. Laten we je snel rondleiden.</p>
+                <button class="btn btn-primary" onclick="obNext(2)">Volgende →</button>
+            </div>
+            <div class="ob-step" id="ob-step-2">
+                <div class="ob-icon">🪑</div>
+                <h2 class="ob-title">Stoel huren</h2>
+                <p class="ob-text">Klik op een <strong>groene stoel</strong> om hem vandaag te huren. Je betaalt via ons veilige checkout-formulier. Huurprijs: €12,50 of €10,00 afhankelijk van het tijdslot.</p>
+                <div class="ob-nav">
+                    <button class="btn btn-subtle btn-sm" onclick="obNext(1)">← Terug</button>
+                    <button class="btn btn-primary btn-sm" onclick="obNext(3)">Volgende →</button>
+                </div>
+            </div>
+            <div class="ob-step" id="ob-step-3">
+                <div class="ob-icon">📅</div>
+                <h2 class="ob-title">Reserveren</h2>
+                <p class="ob-text">Via <strong>Reserveren</strong> in het menu kun je een stoel reserveren voor de komende 14 dagen. Handig als je zeker wilt zijn van je plek!</p>
+                <div class="ob-nav">
+                    <button class="btn btn-subtle btn-sm" onclick="obNext(2)">← Terug</button>
+                    <button class="btn btn-primary btn-sm" onclick="obNext(4)">Volgende →</button>
+                </div>
+            </div>
+            <div class="ob-step" id="ob-step-4">
+                <div class="ob-icon">🔔</div>
+                <h2 class="ob-title">Klaar!</h2>
+                <p class="ob-text">Je ontvangt meldingen via de 🔔 bel in de navigatiebalk. Klik op je naam om je profiel, avatar en verhuurgeschiedenis te bekijken. Veel plezier!</p>
+                <button class="btn btn-primary" onclick="closeOnboarding()">Aan de slag! 🌊</button>
+            </div>
+        </div>
+        <!-- Progress dots -->
+        <div class="ob-dots">
+            <span class="ob-dot is-active" id="dot-1"></span>
+            <span class="ob-dot" id="dot-2"></span>
+            <span class="ob-dot" id="dot-3"></span>
+            <span class="ob-dot" id="dot-4"></span>
+        </div>
+    </div>
+</div>
+{% endif %}

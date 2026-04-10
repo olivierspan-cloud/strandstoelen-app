@@ -4,7 +4,7 @@
 {% block content %}
 <div class="profile-page">
 
-    <!-- ─── HERO CARD ─── -->
+    <!-- ── HERO CARD ── -->
     <div class="profile-hero-card">
         <div class="phc-backdrop" aria-hidden="true">
             <svg class="phc-wave" viewBox="0 0 800 120" preserveAspectRatio="none">
@@ -12,15 +12,12 @@
             </svg>
         </div>
 
-        <!-- Avatar display + picker trigger -->
         <div class="profile-avatar-wrap">
             <div class="profile-avatar" id="current-avatar" title="Klik om te wijzigen">
                 <span class="avatar-display" id="avatar-display">{{ avatars[avatar] }}</span>
-                <div class="avatar-edit-overlay">
-                    <span>✎</span>
-                </div>
+                <div class="avatar-edit-overlay"><span>✎</span></div>
             </div>
-            <span class="avatar-hint">Klik om te wijzigen</span>
+            <span class="avatar-hint">Klik om avatar te wijzigen</span>
         </div>
 
         <div class="profile-info">
@@ -30,7 +27,6 @@
             </div>
         </div>
 
-        <!-- Stats row inside hero -->
         <div class="profile-hero-stats">
             <div class="phs-item">
                 <span class="phs-val">{{ stats.total_rentals }}</span>
@@ -43,13 +39,18 @@
             </div>
             <div class="phs-divider"></div>
             <div class="phs-item">
+                <span class="phs-val">{{ reservations|length }}</span>
+                <span class="phs-lbl">Reserveringen</span>
+            </div>
+            <div class="phs-divider"></div>
+            <div class="phs-item">
                 <span class="phs-val">{{ stats.last_rental[:10] if stats.last_rental != '—' else '—' }}</span>
                 <span class="phs-lbl">Laatste verhuur</span>
             </div>
         </div>
     </div>
 
-    <!-- ─── AVATAR PICKER (hidden until triggered) ─── -->
+    <!-- ── AVATAR PICKER ── -->
     <div class="avatar-picker-panel" id="avatar-picker" hidden>
         <div class="app-header">
             <h2 class="app-title">Kies jouw avatar</h2>
@@ -64,36 +65,55 @@
             </button>
             {% endfor %}
         </div>
-        <p class="app-note">Klik op een avatar om deze te kiezen. Je keuze wordt direct opgeslagen.</p>
+        <p class="app-note">Klik op een avatar om deze op te slaan.</p>
     </div>
 
-    <!-- ─── HISTORY TABLE ─── -->
+    <!-- ── UPCOMING RESERVATIONS ── -->
+    {% if reservations %}
+    <div class="profile-section">
+        <div class="ps-header">
+            <h2 class="ps-title">📅 Aankomende reserveringen</h2>
+            <span class="ps-count">{{ reservations|length }}</span>
+        </div>
+        <div class="ps-table-wrap">
+            <table class="ps-table">
+                <thead><tr><th>Stoel</th><th>Datum</th><th>Tijdslot</th><th>Prijs</th><th></th></tr></thead>
+                <tbody>
+                {% for r in reservations %}
+                <tr>
+                    <td><div class="chair-badge">#{{ r['chair_id'] }}</div></td>
+                    <td><strong>{{ r['date'] }}</strong></td>
+                    <td><span class="time-badge">{{ r['time_slot'] }}</span></td>
+                    <td class="price-cell">€{{ "%.2f"|format(r['price']|float) }}</td>
+                    <td>
+                        <form method="POST" action="/reserveer/annuleer/{{ r['id'] }}"
+                              onsubmit="return confirm('Reservering annuleren?')">
+                            <button type="submit" class="btn btn-danger btn-xs">Annuleer</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── RENTAL HISTORY ── -->
     <div class="profile-section">
         <div class="ps-header">
             <h2 class="ps-title">Verhuurgeschiedenis</h2>
             <span class="ps-count">{{ stats.total_rentals }} verhuren</span>
         </div>
-
         {% if rentals %}
         <div class="ps-table-wrap">
             <table class="ps-table">
-                <thead>
-                    <tr>
-                        <th>Stoel</th>
-                        <th>Tijdslot</th>
-                        <th>Bedrag</th>
-                        <th>Datum &amp; tijd</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Stoel</th><th>Tijdslot</th><th>Bedrag</th><th>Datum &amp; tijd</th></tr></thead>
                 <tbody>
                 {% for r in rentals %}
                 <tr>
-                    <td>
-                        <div class="chair-badge">#{{ r['chair_id'] }}</div>
-                    </td>
-                    <td>
-                        <span class="time-badge">{{ r['time_slot'] or '—' }}</span>
-                    </td>
+                    <td><div class="chair-badge">#{{ r['chair_id'] }}</div></td>
+                    <td><span class="time-badge">{{ r['time_slot'] or '—' }}</span></td>
                     <td class="price-cell">€{{ "%.2f"|format(r['price']|float) }}</td>
                     <td class="date-cell">{{ r['date'][:16] }}</td>
                 </tr>
@@ -110,8 +130,55 @@
         {% endif %}
     </div>
 
+    <!-- ── RECENT NOTIFICATIONS ── -->
+    {% if notifications %}
+    <div class="profile-section">
+        <div class="ps-header">
+            <h2 class="ps-title">🔔 Recente meldingen</h2>
+        </div>
+        <div class="notif-list-profile">
+            {% for n in notifications %}
+            <div class="nlp-item nlp-{{ n['type'] }}">
+                <span class="nlp-msg">{{ n['message'] }}</span>
+                <span class="nlp-time">{{ n['created_at'][:16] }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── CHANGE PASSWORD (feature 5) ── -->
+    <div class="profile-section">
+        <div class="ps-header">
+            <h2 class="ps-title">🔒 Wachtwoord wijzigen</h2>
+        </div>
+        <form method="POST" action="/profiel/wachtwoord" class="pw-form">
+            <div class="field">
+                <label class="field-label">Huidig wachtwoord</label>
+                <input type="password" name="current_password" class="field-control"
+                       placeholder="••••••••" required>
+            </div>
+            <div class="field-row">
+                <div class="field">
+                    <label class="field-label">Nieuw wachtwoord</label>
+                    <input type="password" name="new_password" class="field-control"
+                           placeholder="Min. 4 tekens" required minlength="4">
+                </div>
+                <div class="field">
+                    <label class="field-label">Bevestig nieuw</label>
+                    <input type="password" name="confirm_password" class="field-control"
+                           placeholder="Herhaal nieuw" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:.5rem">
+                Wachtwoord opslaan
+            </button>
+        </form>
+    </div>
+
     <div class="profile-footer-nav">
         <a href="/" class="btn btn-subtle">← Terug naar overzicht</a>
+        <a href="/reserveer" class="btn btn-primary">Nieuwe reservering →</a>
     </div>
 
 </div>
@@ -119,12 +186,10 @@
 
 {% block scripts %}
 <script>
-const CURRENT_AVATAR = "{{ avatar }}";
-const avatarDisplay  = document.getElementById("avatar-display");
-const picker         = document.getElementById("avatar-picker");
-const navEmoji       = document.querySelector(".nav-avatar-btn .avatar-emoji");
+const avatarDisplay = document.getElementById("avatar-display");
+const picker        = document.getElementById("avatar-picker");
+const navEmoji      = document.querySelector(".nav-avatar-btn .avatar-emoji");
 
-// Open picker
 document.getElementById("current-avatar").addEventListener("click", () => {
     picker.removeAttribute("hidden");
     picker.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -133,19 +198,14 @@ document.getElementById("close-picker").addEventListener("click", () => {
     picker.setAttribute("hidden", "");
 });
 
-// Choose avatar
 document.querySelectorAll(".avatar-option").forEach(btn => {
     btn.addEventListener("click", async () => {
-        const key   = btn.dataset.key;
-        const emoji = btn.dataset.emoji;
-        const fd    = new FormData();
-        fd.append("avatar", key);
-
+        const key = btn.dataset.key, emoji = btn.dataset.emoji;
+        const fd  = new FormData(); fd.append("avatar", key);
         try {
             const res  = await fetch("/profiel/avatar", { method: "POST", body: fd });
             const data = await res.json();
             if (data.ok) {
-                // Update display
                 avatarDisplay.textContent = emoji;
                 if (navEmoji) navEmoji.textContent = emoji;
                 document.querySelectorAll(".avatar-option").forEach(b => b.classList.remove("is-selected"));
@@ -153,9 +213,7 @@ document.querySelectorAll(".avatar-option").forEach(btn => {
                 picker.setAttribute("hidden", "");
                 window.showToast("Avatar opgeslagen! " + emoji, "success");
             }
-        } catch {
-            window.showToast("Kon avatar niet opslaan.", "error");
-        }
+        } catch { window.showToast("Kon avatar niet opslaan.", "error"); }
     });
 });
 </script>
