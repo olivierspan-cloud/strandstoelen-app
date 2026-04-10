@@ -9,26 +9,34 @@
 </section>
 
 <!-- ══ REVENUE CARDS ══ -->
+<!-- Demo banner — shows when example data is active -->
+<div id="demo-banner" style="display:none;align-items:center;gap:.75rem;
+     background:rgba(212,130,30,.12);border:1px solid rgba(212,130,30,.3);
+     border-radius:10px;padding:.7rem 1.1rem;margin-bottom:1rem;font-size:.85rem;color:#7a4800;">
+    <span>⚠️</span>
+    <span><strong>Voorbeeldmodus actief</strong> — onderstaande cijfers zijn fictief en dienen ter illustratie.</span>
+</div>
+
 <div class="kpi-row">
     <div class="kpi-card">
         <span class="kpi-bg-icon">☀️</span>
         <span class="kpi-period">Vandaag</span>
-        <span class="kpi-amount">€{{ "%.2f"|format(revenue['day']) }}</span>
+        <span class="kpi-amount" id="kpi-dag">€{{ "%.2f"|format(revenue['day']) }}</span>
     </div>
     <div class="kpi-card kpi-accent">
         <span class="kpi-bg-icon">📅</span>
         <span class="kpi-period">Deze week</span>
-        <span class="kpi-amount">€{{ "%.2f"|format(revenue['week']) }}</span>
+        <span class="kpi-amount" id="kpi-week">€{{ "%.2f"|format(revenue['week']) }}</span>
     </div>
     <div class="kpi-card">
         <span class="kpi-bg-icon">🗓</span>
         <span class="kpi-period">Deze maand</span>
-        <span class="kpi-amount">€{{ "%.2f"|format(revenue['month']) }}</span>
+        <span class="kpi-amount" id="kpi-maand">€{{ "%.2f"|format(revenue['month']) }}</span>
     </div>
     <div class="kpi-card kpi-warm">
         <span class="kpi-bg-icon">🌊</span>
         <span class="kpi-period">Seizoen</span>
-        <span class="kpi-amount">€{{ "%.2f"|format(revenue['season']) }}</span>
+        <span class="kpi-amount" id="kpi-seizoen">€{{ "%.2f"|format(revenue['season']) }}</span>
     </div>
 </div>
 
@@ -202,113 +210,152 @@ const DEMO_WEEKS = [
     {week:"W24",totaal:1225,aantal:98},{week:"W25",totaal:1550,aantal:124},
 ];
 
+// Realistic demo heatmap: beach crowd builds mid-day, peaks at lunch
+const DEMO_HEATMAP = [
+    {hour:10,count:4},{hour:11,count:9},{hour:12,count:16},
+    {hour:13,count:22},{hour:14,count:20},{hour:15,count:18},
+    {hour:16,count:14},{hour:17,count:8},{hour:18,count:2},
+];
+
+// Demo KPI values (realistic month)
+const DEMO_KPI = { dag: 200.0, week: 1087.5, maand: 4562.5, seizoen: 4562.5 };
+const REAL_KPI = {
+    dag:    {{ "%.2f"|format(revenue['day']|float) }},
+    week:   {{ "%.2f"|format(revenue['week']|float) }},
+    maand:  {{ "%.2f"|format(revenue['month']|float) }},
+    seizoen:{{ "%.2f"|format(revenue['season']|float) }},
+};
+
 let useDemoData = false;
-let chartDay, chartCount, chartWeek;
+let chartDay, chartCount, chartWeek, chartHeat;
 
 const dark = () => document.documentElement.getAttribute('data-theme') === 'dark';
 const gc   = () => dark() ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
 const tc   = () => dark() ? '#8aa4b0' : '#6b7f89';
 
-function oceanGrad(ctx, alpha1=.9, alpha2=.15) {
-    const g = ctx.createLinearGradient(0, 0, 0, 260);
-    g.addColorStop(0, `rgba(26,130,170,${alpha1})`);
-    g.addColorStop(1, `rgba(15,63,82,${alpha2})`);
+function oceanGrad(ctx, a1=.85, a2=.12) {
+    const g = ctx.createLinearGradient(0,0,0,260);
+    g.addColorStop(0, `rgba(45,88,120,${a1})`);
+    g.addColorStop(1, `rgba(15,63,82,${a2})`);
     return g;
+}
+
+function axisOpts() {
+    return {
+        grid:  { color: gc() },
+        ticks: { color: tc(), font: { family: 'Outfit', size: 11 } }
+    };
 }
 
 function buildCharts(data) {
     const days  = data.days;
     const weeks = data.weeks;
+    const heat  = data.heat;
 
-    const dayLabels   = days.map(d => d.dag || '');
-    const dayRevenue  = days.map(d => d.totaal);
-    const dayCount    = days.map(d => d.aantal);
-    const weekLabels  = weeks.map(w => w.week);
-    const weekRevenue = weeks.map(w => w.totaal);
-
-    const axisOpts = () => ({
-        grid: { color: gc() },
-        ticks: { color: tc(), font: { family: 'Outfit', size: 11 } }
-    });
-
+    // ── Day revenue chart ──
     if (chartDay) chartDay.destroy();
-    const ctxD = document.getElementById('chartDay').getContext('2d');
-    chartDay = new Chart(ctxD, {
+    const ctxD = document.getElementById('chartDay')?.getContext('2d');
+    if (ctxD) chartDay = new Chart(ctxD, {
         type: 'bar',
         data: {
-            labels: dayLabels,
-            datasets: [{
-                data: dayRevenue,
-                backgroundColor: oceanGrad(ctxD),
-                borderColor: 'rgba(26,130,170,.9)',
-                borderWidth: 1.5,
-                borderRadius: 5,
-            }]
+            labels: days.map(d => d.dag || ''),
+            datasets: [{ data: days.map(d => d.totaal),
+                backgroundColor: oceanGrad(ctxD), borderColor:'rgba(45,88,120,.9)',
+                borderWidth:1.5, borderRadius:5 }]
         },
-        options: {
-            responsive: true, maintainAspectRatio: true,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` €${c.parsed.y.toFixed(2)}` } } },
-            scales: { x: axisOpts(), y: { ...axisOpts(), ticks: { ...axisOpts().ticks, callback: v => '€'+v } } }
-        }
+        options: { responsive:true, maintainAspectRatio:true,
+            plugins:{ legend:{display:false}, tooltip:{ callbacks:{label:c=>` €${c.parsed.y.toFixed(2)}`}} },
+            scales:{ x:axisOpts(), y:{...axisOpts(), ticks:{...axisOpts().ticks, callback:v=>'€'+v}} } }
     });
 
+    // ── Day count chart ──
     if (chartCount) chartCount.destroy();
-    const ctxC = document.getElementById('chartCount').getContext('2d');
-    chartCount = new Chart(ctxC, {
+    const ctxC = document.getElementById('chartCount')?.getContext('2d');
+    if (ctxC) chartCount = new Chart(ctxC, {
         type: 'line',
         data: {
-            labels: dayLabels,
-            datasets: [{
-                data: dayCount,
-                borderColor: 'rgba(46,189,107,1)',
-                backgroundColor: 'rgba(46,189,107,.12)',
-                fill: true, tension: 0.42,
-                pointBackgroundColor: 'rgba(46,189,107,1)',
-                pointRadius: 4,
-            }]
+            labels: days.map(d => d.dag || ''),
+            datasets: [{ data: days.map(d => d.aantal),
+                borderColor:'rgba(62,140,92,1)', backgroundColor:'rgba(62,140,92,.12)',
+                fill:true, tension:0.42, pointBackgroundColor:'rgba(62,140,92,1)', pointRadius:4 }]
         },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { x: axisOpts(), y: { ...axisOpts(), ticks: { ...axisOpts().ticks, stepSize: 1 } } }
-        }
+        options: { responsive:true,
+            plugins:{ legend:{display:false} },
+            scales:{ x:axisOpts(), y:{...axisOpts(), ticks:{...axisOpts().ticks, stepSize:1}, beginAtZero:true} } }
     });
 
+    // ── Week chart ──
     if (chartWeek) chartWeek.destroy();
-    const ctxW = document.getElementById('chartWeek').getContext('2d');
-    chartWeek = new Chart(ctxW, {
+    const ctxW = document.getElementById('chartWeek')?.getContext('2d');
+    if (ctxW) chartWeek = new Chart(ctxW, {
         type: 'bar',
         data: {
-            labels: weekLabels,
-            datasets: [{
-                data: weekRevenue,
-                backgroundColor: 'rgba(15,63,82,.75)',
-                borderColor: 'rgba(15,63,82,1)',
-                borderWidth: 1.5,
-                borderRadius: 5,
-            }]
+            labels: weeks.map(w => w.week),
+            datasets: [{ data: weeks.map(w => w.totaal),
+                backgroundColor:'rgba(22,52,72,.75)', borderColor:'rgba(22,52,72,1)',
+                borderWidth:1.5, borderRadius:5 }]
         },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` €${c.parsed.y.toFixed(2)}` } } },
-            scales: { x: axisOpts(), y: { ...axisOpts(), ticks: { ...axisOpts().ticks, callback: v => '€'+v } } }
-        }
+        options: { responsive:true,
+            plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` €${c.parsed.y.toFixed(2)}`}} },
+            scales:{ x:axisOpts(), y:{...axisOpts(), ticks:{...axisOpts().ticks, callback:v=>'€'+v}} } }
     });
+
+    // ── Heatmap chart ──
+    if (chartHeat) chartHeat.destroy();
+    const ctxH = document.getElementById('chartHeat')?.getContext('2d');
+    if (ctxH && heat && heat.length) {
+        const maxH = Math.max(...heat.map(h => h.count), 1);
+        chartHeat = new Chart(ctxH, {
+            type: 'bar',
+            data: {
+                labels: heat.map(h => h.hour + ':00'),
+                datasets: [{ data: heat.map(h => h.count),
+                    backgroundColor: heat.map(h => {
+                        const intensity = h.count / maxH;
+                        return `rgba(45,88,120,${0.15 + intensity * 0.78})`;
+                    }),
+                    borderRadius: 5, borderWidth: 0 }]
+            },
+            options: { responsive:true,
+                plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.parsed.y} verhuren`}} },
+                scales:{ x:axisOpts(), y:{...axisOpts(), ticks:{...axisOpts().ticks, stepSize:1}, beginAtZero:true} } }
+        });
+    }
 }
 
-// Initial load with real data
-buildCharts({ days: REAL_DAY, weeks: REAL_WEEK });
+// Update KPI cards with demo or real values
+function updateKPIs(kpi, isDemo) {
+    const ids = ['kpi-dag','kpi-week','kpi-maand','kpi-seizoen'];
+    const vals = [kpi.dag, kpi.week, kpi.maand, kpi.seizoen];
+    ids.forEach((id, i) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = '€' + vals[i].toFixed(2);
+        el.classList.toggle('is-demo', isDemo);
+    });
+    // Show/hide demo banner
+    const banner = document.getElementById('demo-banner');
+    if (banner) banner.style.display = isDemo ? 'flex' : 'none';
+}
 
-// Demo chart toggle
-document.getElementById('demo-chart-btn').addEventListener('click', function() {
+// Initial load
+const REAL_HEATMAP = {{ heatmap | tojson }};
+buildCharts({ days: REAL_DAY, weeks: REAL_WEEK, heat: REAL_HEATMAP });
+
+// Demo toggle
+document.getElementById('demo-chart-btn')?.addEventListener('click', function() {
     useDemoData = !useDemoData;
     buildCharts(useDemoData
-        ? { days: DEMO_DAYS, weeks: DEMO_WEEKS }
-        : { days: REAL_DAY, weeks: REAL_WEEK }
+        ? { days: DEMO_DAYS, weeks: DEMO_WEEKS, heat: DEMO_HEATMAP }
+        : { days: REAL_DAY,  weeks: REAL_WEEK,  heat: REAL_HEATMAP }
     );
-    this.textContent = useDemoData ? '📊 Echte data' : '📊 Voorbeeldgrafiek';
-    this.classList.toggle('active', useDemoData);
-    window.showToast(useDemoData ? 'Voorbeelddata geladen (fictief)' : 'Echte data geladen', 'info');
+    updateKPIs(useDemoData ? DEMO_KPI : REAL_KPI, useDemoData);
+    this.textContent = useDemoData ? '📊 Echte data tonen' : '📊 Voorbeeldgrafiek';
+    this.classList.toggle('is-active', useDemoData);
+    window.showToast(
+        useDemoData ? '📊 Voorbeelddata geladen — fictieve maanddata' : '📊 Echte data hersteld',
+        'info'
+    );
 });
 
 // Always-open toggle
@@ -320,38 +367,6 @@ document.getElementById('always-open-btn')?.addEventListener('click', async func
     this.querySelector('.tp-label').textContent = data.always_open ? 'Aan' : 'Uit';
     window.showToast(data.always_open ? '🔓 Altijd verhuurbaar ingeschakeld' : '🔒 Tijdregels actief', 'success');
 });
-
-// ── Heatmap chart (feature 6) ──────────────────────────────
-const HEATMAP = {{ heatmap | tojson }};
-const ctxHeat = document.getElementById('chartHeat')?.getContext('2d');
-if (ctxHeat && HEATMAP.length) {
-    const maxH = Math.max(...HEATMAP.map(h => h.count), 1);
-    new Chart(ctxHeat, {
-        type: 'bar',
-        data: {
-            labels: HEATMAP.map(h => h.hour + ':00'),
-            datasets: [{
-                data: HEATMAP.map(h => h.count),
-                backgroundColor: HEATMAP.map(h => {
-                    const intensity = h.count / maxH;
-                    return `rgba(45,88,120,${0.15 + intensity * 0.75})`;
-                }),
-                borderRadius: 5,
-                borderWidth: 0,
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false }, tooltip: {
-                callbacks: { label: c => ` ${c.parsed.y} verhuren` }
-            }},
-            scales: {
-                x: { grid: { color: gc() }, ticks: { color: tc() } },
-                y: { grid: { color: gc() }, ticks: { color: tc(), stepSize: 1 }, beginAtZero: true }
-            }
-        }
-    });
-}
 </script>
 
 <!-- ── HEATMAP SECTION (feature 6) ── -->

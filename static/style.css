@@ -1394,3 +1394,19 @@ strong { font-weight: 600; }
 /* fill- aliases for occ segments */
 .fill-bezet { background: var(--amber-500); }
 .fill-kapot { background: var(--red-500); }
+
+/* Demo mode KPI highlight */
+.kpi-amount.is-demo {
+    color: var(--amber-500) !important;
+    position: relative;
+}
+.kpi-amount.is-demo::after {
+    content: ' *';
+    font-size: .65em;
+    opacity: .7;
+}
+[data-theme="dark"] #demo-banner {
+    background: rgba(212,130,30,.08) !important;
+    color: #d4a060 !important;
+    border-color: rgba(212,130,30,.2) !important;
+}
