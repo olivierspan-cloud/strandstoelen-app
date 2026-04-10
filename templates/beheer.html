@@ -60,6 +60,13 @@
         </div>
         <a href="/beheer/export-csv" class="btn btn-primary btn-sm">Download →</a>
     </div>
+    <div class="control-card">
+        <div>
+            <strong>📊 Demo</strong>
+            <small>Toon voorbeelddata in alle grafieken</small>
+        </div>
+        <button class="btn btn-demo-chart" id="demo-chart-btn" type="button">Demo</button>
+    </div>
 </div>
 
 <!-- ══ CHAIR STATUS BAR ══ -->
@@ -91,12 +98,7 @@
 
 <!-- ══ CHARTS ══ -->
 <div class="section-card">
-    <div class="chart-header-row">
-        <h2 class="section-heading">Inkomsten & verhuren</h2>
-        <button class="btn btn-demo-chart" id="demo-chart-btn" type="button">
-            📊 Voorbeeldgrafiek
-        </button>
-    </div>
+    <h2 class="section-heading">Inkomsten &amp; verhuren</h2>
     <div class="chart-duo">
         <div class="chart-box">
             <p class="chart-box-label">Inkomsten per dag (€)</p>
@@ -350,7 +352,7 @@ document.getElementById('demo-chart-btn')?.addEventListener('click', function() 
         : { days: REAL_DAY,  weeks: REAL_WEEK,  heat: REAL_HEATMAP }
     );
     updateKPIs(useDemoData ? DEMO_KPI : REAL_KPI, useDemoData);
-    this.textContent = useDemoData ? '📊 Echte data tonen' : '📊 Voorbeeldgrafiek';
+    this.textContent = useDemoData ? 'Echte data' : 'Demo';
     this.classList.toggle('is-active', useDemoData);
     window.showToast(
         useDemoData ? '📊 Voorbeelddata geladen — fictieve maanddata' : '📊 Echte data hersteld',
