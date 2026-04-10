@@ -392,17 +392,45 @@ strong { font-weight: 600; }
 .btn-primary { background: var(--navy-600); color: #fff; border-color: var(--navy-600); box-shadow: 0 2px 8px rgba(34,68,96,.3); }
 .btn-primary:hover { background: var(--navy-700); border-color: var(--navy-700); box-shadow: 0 3px 12px rgba(34,68,96,.4); }
 
-/* Subtle / ghost variants for dark background nav */
+/* Nav buttons — clearly readable on dark navbar */
 .btn-outline-nav {
-    background: rgba(255,255,255,.08); color: rgba(210,232,244,.85);
-    border-color: rgba(255,255,255,.18);
+    background: rgba(255,255,255,.12);
+    color: rgba(230,244,252,.92);
+    border-color: rgba(255,255,255,.28);
+    font-weight: 600;
+    letter-spacing: .02em;
 }
-.btn-outline-nav:hover { background: rgba(255,255,255,.15); color: #fff; }
+.btn-outline-nav:hover {
+    background: rgba(255,255,255,.22);
+    color: #fff;
+    border-color: rgba(255,255,255,.5);
+}
+/* Light mode: uitloggen button */
+[data-theme="light"] .btn-outline-nav {
+    background: rgba(18,37,54,.07);
+    color: var(--navy-800);
+    border-color: rgba(18,37,54,.25);
+}
+[data-theme="light"] .btn-outline-nav:hover {
+    background: rgba(18,37,54,.13);
+    color: var(--navy-900);
+    border-color: rgba(18,37,54,.45);
+}
+
+/* Registreren — amber accent, very visible */
 .btn-solid-nav {
-    background: var(--navy-500); color: #fff;
-    border-color: var(--navy-500); box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    background: linear-gradient(135deg, var(--amber-500) 0%, var(--amber-600) 100%);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 2px 8px rgba(180,100,20,.4);
+    font-weight: 700;
+    letter-spacing: .02em;
 }
-.btn-solid-nav:hover { background: var(--navy-600); }
+.btn-solid-nav:hover {
+    background: linear-gradient(135deg, var(--amber-400) 0%, var(--amber-500) 100%);
+    box-shadow: 0 3px 14px rgba(180,100,20,.5);
+    transform: translateY(-1px);
+}
 
 /* Other variants */
 .btn-subtle { background: var(--surface-alt); color: var(--text-secondary); border-color: var(--border-strong); }
