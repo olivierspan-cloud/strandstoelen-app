@@ -39,7 +39,10 @@ def get_price_and_slot():
 
 def _notif_count():
     if not logged_in(): return 0
-    return count_unread_notifications(session["user"])
+    try:
+        return count_unread_notifications(session["user"])
+    except Exception:
+        return 0
 
 
 # ══════════════════════════════════════════════════════════
@@ -374,20 +377,24 @@ def toggle_always_open():
 @main_routes.route("/beheer")
 def beheer():
     if not is_admin(): flash("Geen toegang.", "error"); return redirect("/")
-    chairs = get_all_chairs()
-    return render_template("beheer.html",
-        revenue=get_revenue_breakdown(),
-        recent=get_recent_rentals(25),
-        stats=get_chair_stats(),
-        day_data=get_rentals_per_day(7),
-        week_data=get_rentals_per_week(8),
-        always_open=is_always_open(),
-        broken_chairs=[c for c in chairs if c["status"] in ("kapot","in_reparatie")],
-        all_reservations=get_all_reservations(30),
-        week_reservations=get_week_reservations(),
-        heatmap=get_hourly_heatmap(),
-        user=session.get("user"),
-        notif_count=_notif_count())
+    try:
+        chairs = get_all_chairs()
+        return render_template("beheer.html",
+            revenue=get_revenue_breakdown(),
+            recent=get_recent_rentals(25),
+            stats=get_chair_stats(),
+            day_data=get_rentals_per_day(7),
+            week_data=get_rentals_per_week(8),
+            always_open=is_always_open(),
+            broken_chairs=[c for c in chairs if c["status"] in ("kapot","in_reparatie")],
+            all_reservations=get_all_reservations(30),
+            week_reservations=get_week_reservations(),
+            heatmap=get_hourly_heatmap(),
+            user=session.get("user"),
+            notif_count=_notif_count())
+    except Exception as e:
+        flash(f"Dashboard fout: {str(e)}", "error")
+        return redirect("/")
 
 
 # ══════════════════════════════════════════════════════════

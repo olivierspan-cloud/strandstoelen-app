@@ -1386,3 +1386,11 @@ strong { font-weight: 600; }
     .slot-opt-body { flex-direction: column; align-items: flex-start; gap: .2rem; }
     .notif-dropdown { width: calc(100vw - 2rem); right: -80px; }
 }
+
+/* kpi-accent is an alias for kpi-navy (backwards compat) */
+.kpi-card.kpi-accent { background: linear-gradient(135deg, var(--navy-800), var(--navy-700)); }
+.kpi-card.kpi-accent .kpi-period { color: rgba(190,220,238,.55); }
+.kpi-card.kpi-accent .kpi-amount { color: #cce4f0; }
+/* fill- aliases for occ segments */
+.fill-bezet { background: var(--amber-500); }
+.fill-kapot { background: var(--red-500); }

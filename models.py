@@ -10,6 +10,73 @@ def get_db():
     return conn
 
 
+def auto_migrate():
+    """Safely add any missing tables or columns to an existing database.
+    This means you do NOT need to delete database.db after updating."""
+    conn = sqlite3.connect(DB_NAME)
+    cur  = conn.cursor()
+
+    # Add avatar column if missing
+    try:
+        cur.execute("ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT 'wave'")
+    except Exception: pass
+
+    # Create reservations table if missing
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS reservations (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        chair_id    INTEGER NOT NULL,
+        date        TEXT    NOT NULL,
+        time_slot   TEXT    NOT NULL,
+        price       REAL    NOT NULL,
+        reserved_by TEXT    NOT NULL,
+        created_at  TEXT    NOT NULL,
+        FOREIGN KEY (chair_id) REFERENCES chairs(id)
+    )""")
+
+    # Create notifications table if missing
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS notifications (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        username   TEXT NOT NULL,
+        message    TEXT NOT NULL,
+        type       TEXT NOT NULL DEFAULT 'info',
+        created_at TEXT NOT NULL,
+        is_read    INTEGER NOT NULL DEFAULT 0
+    )""")
+
+    # Create settings table if missing
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS settings (
+        key   TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+    )""")
+    cur.execute("INSERT OR IGNORE INTO settings (key,value) VALUES ('always_open','false')")
+
+    # Add repair columns to chairs if missing
+    try:
+        cur.execute("ALTER TABLE chairs ADD COLUMN repair_reason TEXT")
+    except Exception: pass
+    try:
+        cur.execute("ALTER TABLE chairs ADD COLUMN repair_status TEXT")
+    except Exception: pass
+
+    # Add time_slot and rented_by to rentals if missing
+    try:
+        cur.execute("ALTER TABLE rentals ADD COLUMN time_slot TEXT")
+    except Exception: pass
+    try:
+        cur.execute("ALTER TABLE rentals ADD COLUMN rented_by TEXT")
+    except Exception: pass
+
+    conn.commit()
+    conn.close()
+
+
+# Run migration on import — safe to call multiple times
+auto_migrate()
+
+
 # ══════════════════════════════════════════════════════════
 # USERS
 # ══════════════════════════════════════════════════════════
@@ -163,85 +230,97 @@ def get_chair_stats():
 # ══════════════════════════════════════════════════════════
 
 def add_reservation(chair_id, date, time_slot, price, username):
-    """Reserve a chair for a future date."""
-    conn = get_db()
-    conn.execute("""
-        INSERT INTO reservations (chair_id, date, time_slot, price, reserved_by, created_at)
-        VALUES (?, ?, ?, ?, ?, datetime('now','localtime'))
-    """, (chair_id, date, time_slot, price, username))
-    conn.commit()
-    conn.close()
+    try:
+        conn = get_db()
+        conn.execute("""
+            INSERT INTO reservations (chair_id, date, time_slot, price, reserved_by, created_at)
+            VALUES (?, ?, ?, ?, ?, datetime('now','localtime'))
+        """, (chair_id, date, time_slot, price, username))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        raise e
 
 
 def get_reservations_for_date(date):
-    conn = get_db()
-    rows = conn.execute("""
-        SELECT * FROM reservations WHERE date=? ORDER BY chair_id
-    """, (date,)).fetchall()
-    conn.close()
-    return rows
+    try:
+        conn = get_db()
+        rows = conn.execute("SELECT * FROM reservations WHERE date=? ORDER BY chair_id", (date,)).fetchall()
+        conn.close()
+        return rows
+    except Exception:
+        return []
 
 
 def get_user_reservations(username, upcoming_only=True):
-    conn = get_db()
-    if upcoming_only:
-        rows = conn.execute("""
-            SELECT * FROM reservations
-            WHERE reserved_by=? AND date >= date('now','localtime')
-            ORDER BY date, time_slot
-        """, (username,)).fetchall()
-    else:
-        rows = conn.execute("""
-            SELECT * FROM reservations WHERE reserved_by=? ORDER BY date DESC
-        """, (username,)).fetchall()
-    conn.close()
-    return rows
+    try:
+        conn = get_db()
+        if upcoming_only:
+            rows = conn.execute("""
+                SELECT * FROM reservations
+                WHERE reserved_by=? AND date >= date('now','localtime')
+                ORDER BY date, time_slot
+            """, (username,)).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM reservations WHERE reserved_by=? ORDER BY date DESC", (username,)
+            ).fetchall()
+        conn.close()
+        return rows
+    except Exception:
+        return []
 
 
 def cancel_reservation(res_id, username, is_admin=False):
-    conn = get_db()
-    if is_admin:
-        conn.execute("DELETE FROM reservations WHERE id=?", (res_id,))
-    else:
-        conn.execute(
-            "DELETE FROM reservations WHERE id=? AND reserved_by=?",
-            (res_id, username)
-        )
-    conn.commit()
-    conn.close()
+    try:
+        conn = get_db()
+        if is_admin:
+            conn.execute("DELETE FROM reservations WHERE id=?", (res_id,))
+        else:
+            conn.execute("DELETE FROM reservations WHERE id=? AND reserved_by=?", (res_id, username))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
 
 
 def chair_reserved_on(chair_id, date, time_slot):
-    """Check if a chair already has a reservation for given date+slot."""
-    conn = get_db()
-    r = conn.execute("""
-        SELECT id FROM reservations
-        WHERE chair_id=? AND date=? AND time_slot=?
-    """, (chair_id, date, time_slot)).fetchone()
-    conn.close()
-    return r is not None
+    try:
+        conn = get_db()
+        r = conn.execute("""
+            SELECT id FROM reservations WHERE chair_id=? AND date=? AND time_slot=?
+        """, (chair_id, date, time_slot)).fetchone()
+        conn.close()
+        return r is not None
+    except Exception:
+        return False
 
 
 def get_all_reservations(limit=50):
-    conn = get_db()
-    rows = conn.execute("""
-        SELECT * FROM reservations ORDER BY date DESC, chair_id LIMIT ?
-    """, (limit,)).fetchall()
-    conn.close()
-    return rows
+    try:
+        conn = get_db()
+        rows = conn.execute(
+            "SELECT * FROM reservations ORDER BY date DESC, chair_id LIMIT ?", (limit,)
+        ).fetchall()
+        conn.close()
+        return rows
+    except Exception:
+        return []
 
 
 def get_week_reservations():
-    """Get reservation counts per day for next 7 days."""
-    conn = get_db()
-    rows = conn.execute("""
-        SELECT date, COUNT(*) as count, SUM(price) as revenue
-        FROM reservations
-        WHERE date BETWEEN date('now','localtime') AND date('now','localtime','+6 days')
-        GROUP BY date ORDER BY date
-    """).fetchall()
-    conn.close()
-    return [{"date": r["date"], "count": r["count"], "revenue": r["revenue"]} for r in rows]
+    try:
+        conn = get_db()
+        rows = conn.execute("""
+            SELECT date, COUNT(*) as count, SUM(price) as revenue
+            FROM reservations
+            WHERE date BETWEEN date('now','localtime') AND date('now','localtime','+6 days')
+            GROUP BY date ORDER BY date
+        """).fetchall()
+        conn.close()
+        return [{"date": r["date"], "count": r["count"], "revenue": r["revenue"]} for r in rows]
+    except Exception:
+        return []
 
 
 # ══════════════════════════════════════════════════════════
@@ -339,27 +418,33 @@ def get_rentals_per_week(limit=8):
 
 def get_hourly_heatmap():
     """Returns avg rentals per hour of day (0–23) across all data."""
-    conn = get_db()
-    rows = conn.execute("""
-        SELECT CAST(strftime('%H', date) AS INTEGER) as hour,
-               COUNT(*) as count
-        FROM rentals
-        GROUP BY hour ORDER BY hour
-    """).fetchall()
-    conn.close()
-    heat = {r["hour"]: r["count"] for r in rows}
-    return [{"hour": h, "count": heat.get(h, 0)} for h in range(10, 19)]
+    try:
+        conn = get_db()
+        rows = conn.execute("""
+            SELECT CAST(strftime('%H', date) AS INTEGER) as hour,
+                   COUNT(*) as count
+            FROM rentals
+            GROUP BY hour ORDER BY hour
+        """).fetchall()
+        conn.close()
+        heat = {r["hour"]: r["count"] for r in rows}
+        return [{"hour": h, "count": heat.get(h, 0)} for h in range(10, 19)]
+    except Exception:
+        return [{"hour": h, "count": 0} for h in range(10, 19)]
 
 
 def get_revenue_csv():
     """Return all rentals as list of dicts for CSV export."""
-    conn = get_db()
-    rows = conn.execute("""
-        SELECT id, chair_id, rented_by, time_slot, price, date
-        FROM rentals ORDER BY date DESC
-    """).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    try:
+        conn = get_db()
+        rows = conn.execute("""
+            SELECT id, chair_id, rented_by, time_slot, price, date
+            FROM rentals ORDER BY date DESC
+        """).fetchall()
+        conn.close()
+        return [dict(r) for r in rows]
+    except Exception:
+        return []
 
 
 # ══════════════════════════════════════════════════════════
@@ -367,39 +452,51 @@ def get_revenue_csv():
 # ══════════════════════════════════════════════════════════
 
 def get_user_notifications(username):
-    conn = get_db()
-    rows = conn.execute("""
-        SELECT * FROM notifications
-        WHERE username=? ORDER BY created_at DESC LIMIT 15
-    """, (username,)).fetchall()
-    conn.close()
-    return rows
+    try:
+        conn = get_db()
+        rows = conn.execute("""
+            SELECT * FROM notifications
+            WHERE username=? ORDER BY created_at DESC LIMIT 15
+        """, (username,)).fetchall()
+        conn.close()
+        return rows
+    except Exception:
+        return []
 
 
 def count_unread_notifications(username):
-    conn = get_db()
-    n = conn.execute(
-        "SELECT COUNT(*) FROM notifications WHERE username=? AND is_read=0", (username,)
-    ).fetchone()[0]
-    conn.close()
-    return n
+    try:
+        conn = get_db()
+        n = conn.execute(
+            "SELECT COUNT(*) FROM notifications WHERE username=? AND is_read=0", (username,)
+        ).fetchone()[0]
+        conn.close()
+        return n
+    except Exception:
+        return 0
 
 
 def mark_notifications_read(username):
-    conn = get_db()
-    conn.execute("UPDATE notifications SET is_read=1 WHERE username=?", (username,))
-    conn.commit()
-    conn.close()
+    try:
+        conn = get_db()
+        conn.execute("UPDATE notifications SET is_read=1 WHERE username=?", (username,))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
 
 
 def add_notification(username, message, notif_type="info"):
-    conn = get_db()
-    conn.execute("""
-        INSERT INTO notifications (username, message, type, created_at, is_read)
-        VALUES (?, ?, ?, datetime('now','localtime'), 0)
-    """, (username, message, notif_type))
-    conn.commit()
-    conn.close()
+    try:
+        conn = get_db()
+        conn.execute("""
+            INSERT INTO notifications (username, message, type, created_at, is_read)
+            VALUES (?, ?, ?, datetime('now','localtime'), 0)
+        """, (username, message, notif_type))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
 
 
 # ══════════════════════════════════════════════════════════
