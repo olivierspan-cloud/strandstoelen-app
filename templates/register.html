@@ -3,56 +3,41 @@
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registreren – ZonneStrand</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700;1,9..144,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
-<div class="auth-page">
-    <div class="auth-visual">
-        <div class="av-bg"></div>
-        <div class="av-pattern"></div>
-        <div class="av-content">
-            <div class="av-big-text">
-                Gratis<span>account</span>aanmaken
-            </div>
-            <p class="av-tagline">Maak een account aan en begin direct met huren. Reserveer ook vooruit voor de komende 14 dagen.</p>
-            <div class="av-dots">
-                <div class="av-dot"></div>
-                <div class="av-dot active"></div>
-                <div class="av-dot"></div>
-            </div>
+<body class="auth-page">
+<div class="ocean-bg" aria-hidden="true">
+    <div class="wave wave1"></div><div class="wave wave2"></div><div class="wave wave3"></div>
+</div>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-icon">🪑</div>
+            <h1 class="auth-title">Account aanmaken</h1>
+            <p class="auth-subtitle">ZonneStrand Verhuur · Seizoen 2026</p>
         </div>
-    </div>
-    <div class="auth-form-side">
-        <div class="auth-form-box">
-            <a href="/" class="auth-back-link">← Terug naar overzicht</a>
-            <p class="auth-eyebrow">ZonneStrand Verhuur 2026</p>
-            <h1 class="auth-heading">Account<br><em>aanmaken</em></h1>
-            <p class="auth-subheading">Gratis · Direct huren · Reserveer vooruit</p>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}{% for cat, msg in messages %}
-              <div class="alert alert-{{ cat }}">{{ msg }}</div>
-              {% endfor %}{% endif %}
-            {% endwith %}
-            <form method="POST" class="auth-form-fields">
-                <div class="field">
-                    <label class="field-label">Gebruikersnaam <span class="field-hint">min. 3 tekens</span></label>
-                    <input type="text" name="username" class="field-control" placeholder="Kies een naam" required minlength="3" maxlength="30" autofocus>
-                </div>
-                <div class="field">
-                    <label class="field-label">Wachtwoord <span class="field-hint">min. 4 tekens</span></label>
-                    <input type="password" name="password" class="field-control" placeholder="Kies een wachtwoord" required minlength="4">
-                </div>
-                <div class="field">
-                    <label class="field-label">Bevestig wachtwoord</label>
-                    <input type="password" name="confirm" class="field-control" placeholder="Herhaal wachtwoord" required>
-                </div>
-                <button type="submit" class="btn btn-coral btn-full btn-lg" style="margin-top:.5rem">
-                    Account aanmaken →
-                </button>
-            </form>
-            <p class="auth-switch">Al een account? <a href="/login">Inloggen</a></p>
-        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}{% for cat, msg in messages %}
+          <div class="inline-alert alert-{{ cat }}">{{ msg }}</div>
+          {% endfor %}{% endif %}
+        {% endwith %}
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label>Gebruikersnaam <small style="text-transform:none;letter-spacing:0">(min. 3 tekens)</small></label>
+                <input type="text" name="username" placeholder="Kies een naam" required minlength="3" maxlength="30" autofocus>
+            </div>
+            <div class="form-group">
+                <label>Wachtwoord <small style="text-transform:none;letter-spacing:0">(min. 4 tekens)</small></label>
+                <input type="password" name="password" placeholder="Kies een wachtwoord" required minlength="4">
+            </div>
+            <div class="form-group">
+                <label>Bevestig wachtwoord</label>
+                <input type="password" name="confirm" placeholder="Herhaal wachtwoord" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full" style="margin-top:.5rem">Account aanmaken →</button>
+        </form>
+        <p class="auth-switch">Al een account? <a href="/login">Inloggen</a></p>
     </div>
 </div>
 <script src="/static/script.js"></script>

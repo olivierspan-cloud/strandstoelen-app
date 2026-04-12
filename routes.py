@@ -458,3 +458,57 @@ def api_stats():
 def api_heatmap():
     if not is_admin(): return jsonify([])
     return jsonify(get_hourly_heatmap())
+
+# ── WAITLIST (feature 20) ──────────────────────────────────────────────
+def add_to_waitlist_db(chair_id, username):
+    from models import add_notification, get_db
+    try:
+        conn = get_db()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS waitlist (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                chair_id   INTEGER NOT NULL,
+                username   TEXT    NOT NULL,
+                created_at TEXT    NOT NULL,
+                UNIQUE(chair_id, username)
+            )""")
+        conn.execute("INSERT OR IGNORE INTO waitlist (chair_id, username, created_at) VALUES (?, ?, datetime('now','localtime'))",
+                     (chair_id, username))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print("Waitlist error:", e)
+        return False
+
+@main_routes.route("/api/waitlist", methods=["POST"])
+def api_waitlist():
+    if not logged_in():
+        return jsonify({"error": "Niet ingelogd"}), 401
+    chair_id = int(request.form.get("chair_id", 0))
+    if not chair_id:
+        return jsonify({"error": "Ongeldig stoelnummer"}), 400
+    ok = add_to_waitlist_db(chair_id, session["user"])
+    if ok:
+        add_notification(session["user"],
+            f"Je staat op de wachtlijst voor stoel {chair_id}. Je krijgt een melding zodra hij vrijkomt! 🔔",
+            "info")
+    return jsonify({"ok": ok})
+
+# ── CONFETTI TRIGGER (fires on success page) ──────────────────────────
+# Notify waitlist when chair freed
+def notify_waitlist(chair_id):
+    try:
+        from models import get_db, add_notification
+        conn = get_db()
+        rows = conn.execute(
+            "SELECT username FROM waitlist WHERE chair_id=? ORDER BY created_at LIMIT 5", (chair_id,)
+        ).fetchall()
+        conn.execute("DELETE FROM waitlist WHERE chair_id=?", (chair_id,))
+        conn.commit()
+        conn.close()
+        for row in rows:
+            add_notification(row["username"],
+                f"Stoel {chair_id} is nu vrij! Ga snel huren. 🪑", "success")
+    except Exception:
+        pass

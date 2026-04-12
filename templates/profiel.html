@@ -1,43 +1,44 @@
 {% extends "base.html" %}
 {% block title %}Mijn profiel – ZonneStrand{% endblock %}
+
 {% block content %}
-<div class="profile-page">
+<div class="hero hero-sm">
+    <h1 class="hero-title">Mijn <span class="hero-accent">profiel</span></h1>
+</div>
 
-    <!-- Hero card — dark midnight -->
-    <div class="profile-hero-card">
-        <div class="phc-backdrop" aria-hidden="true"></div>
+<div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem">
 
+    <!-- ── PROFILE HERO ── -->
+    <div class="profile-hero">
         <div class="profile-avatar-wrap">
             <div class="profile-avatar" id="current-avatar" title="Klik om te wijzigen">
                 <span id="avatar-display">{{ avatars[avatar] }}</span>
                 <div class="avatar-edit-overlay"><span>✎</span></div>
             </div>
-            <span class="avatar-hint">Klik om te wijzigen</span>
+            <span class="avatar-hint">Klik om avatar te wijzigen</span>
         </div>
-
         <div class="profile-info">
-            <h1 class="profile-username">{{ user }}</h1>
-            <div class="profile-role-tag {% if role=='admin' %}tag-admin{% else %}tag-user{% endif %}">
+            <h2 class="profile-name">{{ user }}</h2>
+            <span class="profile-role {% if role=='admin' %}role-admin{% else %}role-user{% endif %}">
                 {% if role=='admin' %}♛ Beheerder{% else %}🌊 Strandgast{% endif %}
-            </div>
+            </span>
         </div>
-
-        <div class="profile-hero-stats">
+        <div class="profile-stats-row">
             <div class="phs-item">
                 <span class="phs-val">{{ stats.total_rentals }}</span>
                 <span class="phs-lbl">Verhuren</span>
             </div>
-            <div class="phs-divider"></div>
+            <div class="phs-div"></div>
             <div class="phs-item">
                 <span class="phs-val">€{{ "%.2f"|format(stats.total_spent|float) }}</span>
                 <span class="phs-lbl">Uitgegeven</span>
             </div>
-            <div class="phs-divider"></div>
+            <div class="phs-div"></div>
             <div class="phs-item">
                 <span class="phs-val">{{ reservations|length }}</span>
                 <span class="phs-lbl">Reserveringen</span>
             </div>
-            <div class="phs-divider"></div>
+            <div class="phs-div"></div>
             <div class="phs-item">
                 <span class="phs-val">{{ stats.last_rental[:10] if stats.last_rental != '—' else '—' }}</span>
                 <span class="phs-lbl">Laatste verhuur</span>
@@ -45,43 +46,40 @@
         </div>
     </div>
 
-    <!-- Avatar picker -->
-    <div class="avatar-picker-panel" id="avatar-picker" hidden>
-        <div class="app-header">
-            <h2 class="app-title">Kies jouw avatar</h2>
-            <button class="app-close" id="close-picker">✕</button>
+    <!-- ── AVATAR PICKER ── -->
+    <div class="avatar-picker" id="avatar-picker" style="display:none">
+        <div class="avatar-picker-header">
+            <span class="avatar-picker-title">Kies jouw avatar</span>
+            <button class="avatar-picker-close" id="close-picker">✕</button>
         </div>
         <div class="avatar-grid">
             {% for key, emoji in avatars.items() %}
-            <button class="avatar-option {% if key==avatar %}is-selected{% endif %}"
-                    data-key="{{ key }}" data-emoji="{{ emoji }}"
-                    title="{{ key|replace('_',' ')|capitalize }}">{{ emoji }}</button>
+            <div class="avatar-option {% if key==avatar %}selected{% endif %}"
+                 data-key="{{ key }}" data-emoji="{{ emoji }}"
+                 title="{{ key|replace('_',' ')|capitalize }}">{{ emoji }}</div>
             {% endfor %}
         </div>
-        <p class="app-note">Klik op een avatar — wordt direct opgeslagen.</p>
+        <p class="avatar-picker-note">Klik op een avatar — wordt direct opgeslagen.</p>
     </div>
 
-    <!-- Upcoming reservations -->
+    <!-- ── UPCOMING RESERVATIONS ── -->
     {% if reservations %}
     <div class="profile-section">
-        <div class="ps-header">
-            <h2 class="ps-title">📅 Aankomende reserveringen</h2>
-            <span class="ps-count">{{ reservations|length }}</span>
-        </div>
-        <div class="ps-table-wrap">
+        <h2 class="ps-title">📅 Aankomende reserveringen</h2>
+        <div class="table-wrap">
             <table class="ps-table">
                 <thead><tr><th>Stoel</th><th>Datum</th><th>Tijdslot</th><th>Prijs</th><th></th></tr></thead>
                 <tbody>
                 {% for r in reservations %}
                 <tr>
-                    <td><div class="chair-badge">#{{ r['chair_id'] }}</div></td>
-                    <td><strong>{{ r['date'] }}</strong></td>
-                    <td><span class="time-badge">{{ r['time_slot'] }}</span></td>
-                    <td class="price-cell">€{{ "%.2f"|format(r['price']|float) }}</td>
+                    <td><strong>#{{ r['chair_id'] }}</strong></td>
+                    <td>{{ r['date'] }}</td>
+                    <td><span class="slot-badge">{{ r['time_slot'] }}</span></td>
+                    <td class="data-table amount">€{{ "%.2f"|format(r['price']|float) }}</td>
                     <td>
                         <form method="POST" action="/reserveer/annuleer/{{ r['id'] }}"
                               onsubmit="return confirm('Reservering annuleren?')">
-                            <button type="submit" class="btn btn-danger btn-xs">Annuleer</button>
+                            <button type="submit" class="btn btn-broken btn-xs">Annuleer</button>
                         </form>
                     </td>
                 </tr>
@@ -92,106 +90,103 @@
     </div>
     {% endif %}
 
-    <!-- Rental history -->
+    <!-- ── RENTAL HISTORY ── -->
     <div class="profile-section">
-        <div class="ps-header">
-            <h2 class="ps-title">Verhuurgeschiedenis</h2>
-            <span class="ps-count">{{ stats.total_rentals }}</span>
-        </div>
+        <h2 class="ps-title">Verhuurgeschiedenis</h2>
         {% if rentals %}
-        <div class="ps-table-wrap">
+        <div class="table-wrap">
             <table class="ps-table">
                 <thead><tr><th>Stoel</th><th>Tijdslot</th><th>Bedrag</th><th>Datum</th></tr></thead>
                 <tbody>
                 {% for r in rentals %}
                 <tr>
-                    <td><div class="chair-badge">#{{ r['chair_id'] }}</div></td>
-                    <td><span class="time-badge">{{ r['time_slot'] or '—' }}</span></td>
-                    <td class="price-cell">€{{ "%.2f"|format(r['price']|float) }}</td>
-                    <td class="date-cell">{{ r['date'][:16] }}</td>
+                    <td><strong>#{{ r['chair_id'] }}</strong></td>
+                    <td><span class="slot-badge">{{ r['time_slot'] or '—' }}</span></td>
+                    <td class="data-table amount">€{{ "%.2f"|format(r['price']|float) }}</td>
+                    <td class="data-table muted">{{ r['date'][:16] }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
         {% else %}
-        <div class="ps-empty">
-            <div class="ps-empty-icon">🏖️</div>
-            <p>Nog geen verhuren.</p>
-            <a href="/" class="btn btn-aqua mt-1">Bekijk stoelen →</a>
+        <div class="empty-state">🏖️ Je hebt nog geen stoelen gehuurd.<br>
+            <a href="/" class="btn btn-primary btn-sm" style="margin-top:.75rem;display:inline-flex">Bekijk stoelen →</a>
         </div>
         {% endif %}
     </div>
 
-    <!-- Notifications -->
+    <!-- ── NOTIFICATIONS ── -->
     {% if notifications %}
     <div class="profile-section">
-        <div class="ps-header"><h2 class="ps-title">🔔 Meldingen</h2></div>
-        <div class="notif-list-profile">
+        <h2 class="ps-title">🔔 Recente meldingen</h2>
+        <div class="notif-list">
             {% for n in notifications %}
-            <div class="nlp-item nlp-{{ n['type'] }}">
-                <span class="nlp-msg">{{ n['message'] }}</span>
-                <span class="nlp-time">{{ n['created_at'][:16] }}</span>
+            <div class="notif-item n-{{ n['type'] }}">
+                <span class="notif-msg">{{ n['message'] }}</span>
+                <span class="notif-time">{{ n['created_at'][:16] }}</span>
             </div>
             {% endfor %}
         </div>
     </div>
     {% endif %}
 
-    <!-- Change password -->
+    <!-- ── CHANGE PASSWORD ── -->
     <div class="profile-section">
-        <div class="ps-header"><h2 class="ps-title">🔒 Wachtwoord wijzigen</h2></div>
+        <h2 class="ps-title">🔒 Wachtwoord wijzigen</h2>
         <form method="POST" action="/profiel/wachtwoord" class="pw-form">
-            <div class="field">
-                <label class="field-label">Huidig wachtwoord</label>
-                <input type="password" name="current_password" class="field-control" placeholder="••••••••" required>
+            <div class="form-group">
+                <label>Huidig wachtwoord</label>
+                <input type="password" name="current_password" placeholder="••••••••" required>
             </div>
-            <div class="field-row">
-                <div class="field">
-                    <label class="field-label">Nieuw wachtwoord</label>
-                    <input type="password" name="new_password" class="field-control" placeholder="Min. 4 tekens" required minlength="4">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                <div class="form-group">
+                    <label>Nieuw wachtwoord</label>
+                    <input type="password" name="new_password" placeholder="Min. 4 tekens" required minlength="4">
                 </div>
-                <div class="field">
-                    <label class="field-label">Bevestig nieuw</label>
-                    <input type="password" name="confirm_password" class="field-control" placeholder="Herhaal" required>
+                <div class="form-group">
+                    <label>Bevestig nieuw</label>
+                    <input type="password" name="confirm_password" placeholder="Herhaal" required>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary btn-sm" style="margin-top:.25rem">Opslaan</button>
         </form>
     </div>
 
-    <div class="profile-footer-nav">
-        <a href="/" class="btn btn-ghost">← Overzicht</a>
-        <a href="/reserveer" class="btn btn-aqua">Nieuwe reservering →</a>
+    <div class="profile-footer">
+        <a href="/" class="btn btn-outline-dark">← Overzicht</a>
+        <a href="/reserveer" class="btn btn-primary">Nieuwe reservering →</a>
     </div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const avatarDisplay = document.getElementById("avatar-display");
-const picker        = document.getElementById("avatar-picker");
-const navEmoji      = document.querySelector(".nav-avatar-btn .avatar-emoji");
+const avatarDisp = document.getElementById("avatar-display");
+const picker     = document.getElementById("avatar-picker");
+const navEmoji   = document.querySelector(".nav-avatar-btn .avatar-emoji");
 
 document.getElementById("current-avatar").addEventListener("click", () => {
-    picker.removeAttribute("hidden");
-    picker.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    picker.style.display = picker.style.display==='none' ? 'block' : 'none';
+    if (picker.style.display==='block') picker.scrollIntoView({behavior:'smooth'});
 });
-document.getElementById("close-picker").addEventListener("click", () => picker.setAttribute("hidden",""));
-
-document.querySelectorAll(".avatar-option").forEach(btn => {
-    btn.addEventListener("click", async () => {
-        const key = btn.dataset.key, emoji = btn.dataset.emoji;
-        const fd = new FormData(); fd.append("avatar", key);
+document.getElementById("close-picker").addEventListener("click", () => {
+    picker.style.display = 'none';
+});
+document.querySelectorAll(".avatar-option").forEach(el => {
+    el.addEventListener("click", async () => {
+        const key = el.dataset.key, emoji = el.dataset.emoji;
+        const fd  = new FormData(); fd.append("avatar", key);
         try {
-            const res = await fetch("/profiel/avatar", { method:"POST", body:fd });
+            const res  = await fetch("/profiel/avatar", { method:"POST", body:fd });
             const data = await res.json();
             if (data.ok) {
-                avatarDisplay.textContent = emoji;
+                avatarDisp.textContent = emoji;
                 if (navEmoji) navEmoji.textContent = emoji;
-                document.querySelectorAll(".avatar-option").forEach(b => b.classList.remove("is-selected"));
-                btn.classList.add("is-selected");
-                picker.setAttribute("hidden","");
+                document.querySelectorAll(".avatar-option").forEach(o => o.classList.remove("selected"));
+                el.classList.add("selected");
+                picker.style.display = 'none';
                 window.showToast("Avatar opgeslagen! " + emoji, "success");
             }
         } catch { window.showToast("Fout bij opslaan.", "error"); }

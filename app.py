@@ -45,5 +45,21 @@ try:
 except ImportError:
     print("⚠️  APScheduler niet beschikbaar. Installeer: pip install APScheduler")
 
+
+# ── CSRF Protection (feature 28) ─────────────────────────────
+try:
+    from flask_wtf.csrf import CSRFProtect
+    app.config['WTF_CSRF_SECRET_KEY'] = app.secret_key
+    app.config['WTF_CSRF_TIME_LIMIT'] = 3600
+    csrf = CSRFProtect(app)
+    # Exempt JSON API routes
+    @csrf.exempt
+    def api_exempt():
+        pass
+    print("✅ CSRF bescherming actief.")
+except ImportError:
+    print("⚠️  flask-wtf niet beschikbaar — installeer: pip install flask-wtf")
+    print("   CSRF bescherming uitgeschakeld.")
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

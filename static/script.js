@@ -19,7 +19,7 @@ function setTheme(t) {
 
 // ── 2. TOASTS ────────────────────────────────────────────────
 window.showToast = function(msg, type = "info") {
-    const region = document.getElementById("toast-region");
+    const region = document.getElementById("toast-container");
     if (!region) return;
     const el = document.createElement("div");
     el.className = `toast toast-${type}`;
@@ -63,14 +63,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const hamburger = document.getElementById("hamburger");
     const navLinks  = document.getElementById("nav-links");
     hamburger?.addEventListener("click", () => {
-        const open = navLinks.classList.toggle("is-open");
-        hamburger.classList.toggle("is-open", open);
+        const open = navLinks.classList.toggle("open");
+        hamburger.classList.toggle("open", open);
         hamburger.setAttribute("aria-expanded", String(open));
     });
     document.addEventListener("click", e => {
         if (!hamburger?.contains(e.target) && !navLinks?.contains(e.target)) {
-            navLinks?.classList.remove("is-open");
-            hamburger?.classList.remove("is-open");
+            navLinks?.classList.remove("open");
+            hamburger?.classList.remove("open");
         }
     });
 
@@ -81,11 +81,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ── Chair filter (feature 10: responsive) ───────────────
-    const filts = document.querySelectorAll(".filt");
+    const filts = document.querySelectorAll(".filter-btn");
     const grid  = document.getElementById("chair-grid");
     filts.forEach(btn => btn.addEventListener("click", () => {
-        filts.forEach(b => b.classList.remove("is-active"));
-        btn.classList.add("is-active");
+        filts.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
         applyFiltersAndSearch();
     }));
 
@@ -94,14 +94,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const searchClear = document.getElementById("search-clear");
 
     function applyFiltersAndSearch() {
-        const activeFilter = document.querySelector(".filt.is-active")?.dataset.filter || "all";
+        const activeFilter = document.querySelector(".filter-btn.active")?.dataset.filter || "all";
         const query = searchInput?.value.trim() || "";
         grid?.querySelectorAll(".chair-card").forEach(card => {
             const matchFilter = activeFilter === "all"
                 || card.dataset.status === activeFilter
                 || (activeFilter === "kapot" && (card.dataset.status === "kapot" || card.dataset.status === "in_reparatie"));
             const matchSearch = !query || card.dataset.id === query;
-            card.classList.toggle("is-hidden", !(matchFilter && matchSearch));
+            card.classList.toggle("hidden", !(matchFilter && matchSearch));
 
             // Highlight searched card
             card.classList.toggle("is-highlighted", !!query && card.dataset.id === query);
@@ -228,8 +228,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (row) {
                 const tag = row.querySelector("[class^='repair-tag']");
                 if (tag) {
-                    const map = {kapot:["repair-tag-kapot","🔴 Kapot"],in_reparatie:["repair-tag-reparatie","🛠 In reparatie"]};
-                    const [cls,txt] = map[sel.value] || ["repair-tag-kapot","🔴 Kapot"];
+                    const map = {kapot:["repair-tag kapot","🔴 Kapot"],in_reparatie:["repair-tag in_reparatie","🛠 In reparatie"]};
+                    const [cls,txt] = map[sel.value] || ["repair-tag kapot","🔴 Kapot"];
                     tag.className=cls; tag.textContent=txt;
                 }
             }
@@ -291,12 +291,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ── Onboarding (feature 7) ───────────────────────────────
     window.obNext = function(step) {
-        document.querySelectorAll(".ob-step").forEach(s => s.classList.remove("is-active"));
-        document.querySelectorAll(".ob-dot").forEach(d => d.classList.remove("is-active"));
+        document.querySelectorAll(".ob-step").forEach(s => s.classList.remove("active"));
+        document.querySelectorAll(".ob-dot").forEach(d => d.classList.remove("active"));
         const stepEl = document.getElementById(`ob-step-${step}`);
         const dotEl  = document.getElementById(`dot-${step}`);
-        if (stepEl) stepEl.classList.add("is-active");
-        if (dotEl)  dotEl.classList.add("is-active");
+        if (stepEl) stepEl.classList.add("active");
+        if (dotEl)  dotEl.classList.add("active");
     };
     window.closeOnboarding = function() {
         const ob = document.getElementById("onboarding-modal");
@@ -312,3 +312,67 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
+
+// ── CONFETTI (feature 33) ──────────────────────────────────────────────
+window.launchConfetti = function() {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'confetti-canvas';
+    canvas.style.cssText = 'position:fixed;inset:0;z-index:9998;pointer-events:none';
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const colors = ['#2a9abf','#2ebd6b','#f59e0b','#ef4444','#f5e6c8','#0f3f52'];
+    const pieces = Array.from({length:120}, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * -canvas.height,
+        w: 8 + Math.random() * 8,
+        h: 5 + Math.random() * 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rot: Math.random() * 360,
+        speed: 2 + Math.random() * 4,
+        spin: (Math.random() - .5) * 8,
+        drift: (Math.random() - .5) * 2,
+    }));
+
+    let frame;
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let done = 0;
+        pieces.forEach(p => {
+            p.y += p.speed; p.rot += p.spin; p.x += p.drift;
+            if (p.y > canvas.height + 20) done++;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot * Math.PI / 180);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+            ctx.restore();
+        });
+        if (done < pieces.length) frame = requestAnimationFrame(draw);
+        else canvas.remove();
+    }
+    draw();
+    setTimeout(() => { cancelAnimationFrame(frame); canvas.remove(); }, 5000);
+};
+
+// ── SWIPE FILTER (feature 30) ─────────────────────────────────────────
+(function swipeFilter() {
+    const bar = document.querySelector('.filter-bar');
+    if (!bar) return;
+    let startX = 0, startY = 0;
+    bar.addEventListener('touchstart', e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }, {passive:true});
+    bar.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) < Math.abs(dy) * 1.5 || Math.abs(dx) < 40) return;
+        const btns = Array.from(document.querySelectorAll('.filter-btn'));
+        const active = btns.findIndex(b => b.classList.contains('active'));
+        let next = dx < 0 ? active + 1 : active - 1;
+        if (next < 0) next = btns.length - 1;
+        if (next >= btns.length) next = 0;
+        btns[next]?.click();
+        if (navigator.vibrate) navigator.vibrate(30); // haptic
+    }, {passive:true});
+})();

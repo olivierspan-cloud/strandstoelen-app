@@ -1,233 +1,379 @@
 {% extends "base.html" %}
 {% block title %}Stoelen – ZonneStrand{% endblock %}
+
 {% block content %}
 
-<!-- ═══ HERO ═══ -->
-<section class="hero-section">
-    <div class="hero-grid">
-        <div class="hero-left">
-            <div class="hero-tag">Strandverhuur 2026</div>
-            <h1 class="hero-title">
-                <span>Jouw</span>
-                <span class="line-italic">perfecte</span>
-                <span class="line-outline">stranddag</span>
-            </h1>
-        </div>
-        <div class="hero-right">
-            <div class="hero-status-block">
-                <div class="hsb-label">Status verhuur</div>
-                {% if always_open %}
-                    <div class="hsb-status"><span class="hsb-dot open"></span>Altijd open</div>
-                    <div class="hsb-price">Override actief</div>
-                {% elif current_price %}
-                    <div class="hsb-status"><span class="hsb-dot open"></span>Open</div>
-                    <div class="hsb-price">€{{ "%.2f"|format(current_price|float) }} · {{ current_slot }}</div>
-                {% else %}
-                    <div class="hsb-status"><span class="hsb-dot closed"></span>Gesloten</div>
-                    <div class="hsb-price">Verhuur 10:00 – 18:00</div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Stat strip -->
-    <div class="stat-strip">
-        <div class="stat-item">
-            <span class="stat-num vrij" id="stat-vrij">{{ stats.vrij }}</span>
-            <div class="stat-info">
-                <span class="stat-label">Beschikbaar</span>
-                <div class="stat-bar"><div class="stat-bar-fill fill-vrij" style="width:{{ (stats.vrij/50*100)|round }}%"></div></div>
-            </div>
-        </div>
-        <div class="stat-item">
-            <span class="stat-num bezet" id="stat-bezet">{{ stats.bezet }}</span>
-            <div class="stat-info">
-                <span class="stat-label">Verhuurd</span>
-                <div class="stat-bar"><div class="stat-bar-fill fill-bezet" style="width:{{ (stats.bezet/50*100)|round }}%"></div></div>
-            </div>
-        </div>
-        <div class="stat-item">
-            <span class="stat-num kapot" id="stat-kapot">{{ stats.kapot }}</span>
-            <div class="stat-info">
-                <span class="stat-label">Niet beschikbaar</span>
-                <div class="stat-bar"><div class="stat-bar-fill fill-kapot" style="width:{{ (stats.kapot/50*100)|round }}%"></div></div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ═══ CONTROLS ═══ -->
-<div class="controls-bar">
-    <div class="filter-set">
-        <span class="filter-label">Filter:</span>
-        <button class="filt is-active" data-filter="all">Alle 50</button>
-        <button class="filt" data-filter="vrij">Vrij</button>
-        <button class="filt" data-filter="bezet">Bezet</button>
-        <button class="filt" data-filter="kapot">Kapot</button>
-    </div>
-    <div class="chair-search-wrap">
-        <input type="number" id="chair-search" class="chair-search-input"
-               placeholder="🔍 Stoelnr…" min="1" max="50" aria-label="Zoek stoelnummer">
-        <button class="chair-search-clear" id="search-clear" style="display:none">✕</button>
-    </div>
-    <div class="controls-end">
-        {% if role == 'admin' %}
-        <a href="/free-all" class="btn btn-eod btn-sm"
-           data-confirm="Alle bezette stoelen vrijmaken?">🌅 Einde dag</a>
+<!-- HERO -->
+<div class="hero">
+    <h1 class="hero-title">Jouw <span class="hero-accent">stranddag</span> begint hier</h1>
+    <div class="hero-sub">
+        {% if always_open %}
+            <span class="slot-badge">🔓 Altijd verhuurbaar</span>
+        {% elif current_price %}
+            <span class="slot-badge">🟢 Open · €{{ "%.2f"|format(current_price|float) }} · {{ current_slot }}</span>
+        {% else %}
+            <span class="closed-badge">🔴 Gesloten · verhuur 10:00–18:00</span>
         {% endif %}
+        <!-- Weather pill (feature 15) subtle, loads async -->
+        <span class="weather-pill loading" id="weather-pill">
+            <span class="wicon">🌤</span>
+            <span class="wtemp" id="w-temp">—°C</span>
+            <span class="wdesc" id="w-desc">laden…</span>
+        </span>
+    </div>
+    <div class="stats-row">
+        <div class="stat-pill vrij">
+            <span class="stat-num" id="stat-vrij">{{ stats.vrij }}</span>
+            <span class="stat-label">Beschikbaar</span>
+        </div>
+        <div class="stat-pill bezet">
+            <span class="stat-num" id="stat-bezet">{{ stats.bezet }}</span>
+            <span class="stat-label">Verhuurd</span>
+        </div>
+        <div class="stat-pill kapot">
+            <span class="stat-num" id="stat-kapot">{{ stats.kapot }}</span>
+            <span class="stat-label">Niet beschikbaar</span>
+        </div>
     </div>
 </div>
 
-<!-- ═══ CHAIR GRID ═══ -->
-<div class="chair-grid" id="chair-grid">
+<!-- STRAND MAP (feature 34) -->
+<div id="kaart-section" class="strand-kaart-wrap" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <div class="strand-kaart-title">🗺️ Strandplattegrond — klik op een stoel</div>
+        <button class="btn btn-outline-dark btn-sm" onclick="toggleKaart()">✕ Verberg</button>
+    </div>
+    <div class="strand-svg-wrap">
+        <svg class="strand-svg" width="900" height="280" viewBox="0 0 900 280" xmlns="http://www.w3.org/2000/svg">
+            <rect width="900" height="280" fill="#e8f4f7" rx="10"/>
+            <rect y="180" width="900" height="100" fill="#f5e6c8"/>
+            <text x="450" y="95" text-anchor="middle" font-family="Georgia,serif" font-size="14" fill="#2a9abf" opacity=".5">🌊 ZEE</text>
+            <text x="12" y="168" font-family="sans-serif" font-size="10" fill="#6b7f89">rij 2 →</text>
+            <text x="12" y="250" font-family="sans-serif" font-size="10" fill="#6b7f89">rij 1 →</text>
+            {% for chair in chairs %}
+            {% set i = loop.index0 %}
+            {% set row = 0 if i < 25 else 1 %}
+            {% set col = i if i < 25 else i - 25 %}
+            {% set cx = 35 + col * 34 %}
+            {% set cy = 230 if row == 0 else 152 %}
+            {% set fill = '#2ebd6b' if chair['status']=='vrij' else ('#ef4444' if chair['status'] in ('kapot','in_reparatie') else '#f59e0b') %}
+            <g class="strand-stoel" onclick="kaartClick({{ chair['id'] }},'{{ chair['status'] }}')"
+               transform="translate({{ cx }},{{ cy }})" style="cursor:pointer">
+                <circle r="13" fill="{{ fill }}" opacity=".88"/>
+                <text text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="700" fill="#fff" font-family="sans-serif">{{ chair['id'] }}</text>
+            </g>
+            {% endfor %}
+        </svg>
+    </div>
+    <div class="kaart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#2ebd6b"></div>Beschikbaar</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Verhuurd</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Kapot</div>
+    </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+    <span class="filter-label">Toon:</span>
+    <button class="filter-btn active" data-filter="all">Alle 50</button>
+    <button class="filter-btn" data-filter="vrij">🟢 Vrij</button>
+    <button class="filter-btn" data-filter="bezet">🟡 Bezet</button>
+    <button class="filter-btn" data-filter="kapot">🔴 Kapot</button>
+    <div class="search-wrap" style="margin-left:.5rem">
+        <input type="number" id="chair-search" class="search-input" placeholder="🔍 Nr…" min="1" max="50">
+        <button class="search-clear" id="search-clear" style="display:none">✕</button>
+    </div>
+    <div class="filter-spacer"></div>
+    <button class="btn btn-outline-dark btn-sm" onclick="toggleKaart()" id="kaart-btn">🗺️ Plattegrond</button>
+    {% if user and current_price %}
+    <button class="btn btn-outline-dark btn-sm" onclick="openCartModal()">🛒 Meerdere</button>
+    {% endif %}
+    {% if role=='admin' %}
+    <a href="/free-all" class="btn btn-eod btn-sm" data-confirm="Alle bezette stoelen vrijmaken?">🌅 Einde dag</a>
+    {% endif %}
+</div>
+<p class="swipe-hint">👆 Swipe of tik filters om te wisselen</p>
+
+<!-- SKELETON LOADING (feature 32) -->
+<div class="chair-grid" id="skeleton-grid">
+{% for _ in range(16) %}
+<div class="chair-skeleton">
+    <div class="skel-header"><div class="skel-line skel-num"></div><div class="skel-line skel-dot"></div></div>
+    <div class="skel-line skel-icon" style="margin:.25rem auto"></div>
+    <div class="skel-line skel-label" style="margin:0 auto"></div>
+    <div class="skel-line skel-btn" style="margin:.3rem auto"></div>
+</div>
+{% endfor %}
+</div>
+
+<!-- REAL CHAIR GRID (shown after skeleton) -->
+<div class="chair-grid" id="chair-grid" style="display:none">
 {% for chair in chairs %}
-{% set cid    = chair['id'] %}
-{% set status = chair['status'] %}
-{% set renter = renter_map.get(cid) %}
-{% set broken = status in ('kapot','in_reparatie') %}
-
-<article class="chair-card {{ status }}"
-         data-status="{{ 'kapot' if broken else status }}"
-         data-id="{{ cid }}">
-
-    <div class="cc-header">
-        <span class="cc-number">{{ cid }}</span>
-        <span class="cc-indicator ind-{{ status }}"></span>
+{% set cid=chair['id'] %}{% set status=chair['status'] %}
+{% set renter=renter_map.get(cid) %}{% set broken=status in ('kapot','in_reparatie') %}
+<article class="chair-card {{ status }}" data-status="{{ 'kapot' if broken else status }}"
+         data-id="{{ cid }}" id="card-{{ cid }}">
+    <div class="chair-header">
+        <span class="chair-number">{{ cid }}</span>
+        <span class="status-dot {{ status }}"></span>
     </div>
-
-    <div class="cc-icon">
-        {% if status=='vrij' %}🪑
-        {% elif status=='bezet' %}👤
-        {% elif status=='in_reparatie' %}🛠
-        {% else %}🔧{% endif %}
+    <div class="chair-icon">
+        {%- if status=='vrij' %}🪑{%- elif status=='bezet' %}👤{%- elif status=='in_reparatie' %}🛠{%- else %}🔧{%- endif %}
     </div>
-
-    <div class="cc-status">
-        {% if status=='vrij' %}Beschikbaar
-        {% elif status=='bezet' %}Verhuurd
-        {% elif status=='in_reparatie' %}In reparatie
-        {% else %}Kapot{% endif %}
+    <div class="chair-status">
+        {%- if status=='vrij' %}Beschikbaar{%- elif status=='bezet' %}Verhuurd{%- elif status=='in_reparatie' %}In reparatie{%- else %}Kapot{%- endif %}
     </div>
-
-    {% if status=='bezet' and renter %}
-    <div class="cc-renter">{{ renter }}</div>
-    {% endif %}
+    {% if status=='bezet' and renter %}<div class="chair-renter">{{ renter }}</div>{% endif %}
     {% if broken and chair['repair_reason'] %}
-    <div class="cc-reason" title="{{ chair['repair_reason'] }}">
-        {{ chair['repair_reason'][:22] }}{% if chair['repair_reason']|length > 22 %}…{% endif %}
-    </div>
+    <div class="chair-reason">{{ chair['repair_reason'][:22] }}{% if chair['repair_reason']|length>22 %}…{% endif %}</div>
     {% endif %}
-
-    <div class="cc-actions">
+    <div class="chair-actions">
     {% if user %}
         {% if status=='vrij' %}
             {% if current_price %}
-            <a href="/checkout/{{ cid }}" class="btn btn-aqua btn-xs">Huur · €{{ "%.2f"|format(current_price|float) }}</a>
+            <a href="/checkout/{{ cid }}" class="btn btn-rent btn-xs">Huur · €{{ "%.2f"|format(current_price|float) }}</a>
+            <button class="btn btn-outline-dark btn-xs" onclick="addToCart({{ cid }},{{ current_price }})" title="Winkelwagen">🛒</button>
             {% else %}
-            <span class="cc-closed">Gesloten</span>
+            <span class="chair-taken">Gesloten</span>
             {% endif %}
-            <button class="btn btn-coral btn-xs" onclick="openBrokenModal({{ cid }})" type="button">Kapot melden</button>
+            <button class="btn btn-broken btn-xs" onclick="openBrokenModal({{ cid }})">Kapot</button>
         {% elif status=='bezet' %}
             {% if user==renter or role=='admin' %}
-            <a href="/free/{{ cid }}" class="btn btn-gold btn-xs"
-               data-confirm="Stoel {{ cid }} terugbrengen?">Terugbrengen</a>
+            <a href="/free/{{ cid }}" class="btn btn-free btn-xs" data-confirm="Stoel {{ cid }} terugbrengen?">Terugbrengen</a>
             {% else %}
-            <span class="cc-chip chip-bezet">Verhuurd</span>
+            <button class="btn btn-waitlist btn-xs" onclick="joinWaitlist({{ cid }})">🔔 Wachtlijst</button>
             {% endif %}
         {% elif broken %}
             {% if role=='admin' %}
             <form class="repair-inline" data-chair-id="{{ cid }}">
                 <select name="repair_status" class="repair-sel">
-                    <option value="kapot"        {% if chair['repair_status']=='kapot'        %}selected{% endif %}>Kapot</option>
+                    <option value="kapot" {% if chair['repair_status']=='kapot' %}selected{% endif %}>Kapot</option>
                     <option value="in_reparatie" {% if chair['repair_status']=='in_reparatie' %}selected{% endif %}>Reparatie</option>
-                    <option value="gerepareerd"  {% if chair['repair_status']=='gerepareerd'  %}selected{% endif %}>Klaar</option>
+                    <option value="gerepareerd" {% if chair['repair_status']=='gerepareerd' %}selected{% endif %}>Klaar</option>
                 </select>
-                <button type="submit" class="btn btn-aqua btn-xs">✓</button>
+                <button type="submit" class="btn btn-repair btn-xs">✓</button>
             </form>
             {% else %}
-            <span class="cc-chip chip-kapot">{{ 'Reparatie' if status=='in_reparatie' else 'Kapot' }}</span>
+            <span class="chair-taken">{{ 'Reparatie' if status=='in_reparatie' else 'Kapot' }}</span>
             {% endif %}
         {% endif %}
     {% else %}
-        <a href="/login" class="cc-login-link">Login om te huren →</a>
+        <div class="chair-login-hint"><a href="/login">Login om te huren →</a></div>
     {% endif %}
     </div>
 </article>
 {% endfor %}
 </div>
 
-<!-- ═══ BROKEN MODAL ═══ -->
-<div class="modal-backdrop" id="broken-modal" hidden aria-modal="true" role="dialog">
-    <div class="modal-panel">
+<!-- CART FAB (feature 18) -->
+{% if user %}
+<button class="cart-fab" id="cart-fab" onclick="openCartModal()">
+    🛒 Winkelwagen <span class="cart-fab-count" id="cart-count">0</span>
+</button>
+{% endif %}
+
+<!-- BROKEN MODAL -->
+<div class="modal-backdrop" id="broken-modal" hidden>
+    <div class="modal-card">
         <button class="modal-close" onclick="closeBrokenModal()">✕</button>
         <div class="modal-icon">🔧</div>
         <h2 class="modal-title">Kapot melden</h2>
-        <p class="modal-desc">Stoel <strong id="modal-chair-n">–</strong> — wat is er kapot?</p>
+        <p class="modal-desc">Stoel <strong id="modal-chair-n">–</strong></p>
         <form method="POST" id="broken-form" action="/broken/0">
-            <div class="field" style="margin-bottom:1rem">
-                <label class="field-label">Reden</label>
-                <select name="reason_choice" id="reason_choice" class="field-control" required>
+            <div class="form-group" style="margin-bottom:1rem">
+                <label>Reden</label>
+                <select name="reason_choice" id="reason_choice" required style="padding:.75rem 1rem;border:2px solid #e2e8f0;border-radius:8px;font-size:.95rem;width:100%;background:var(--sand-light);color:var(--text);outline:none">
                     <option value="" disabled selected>— Kies een reden —</option>
-                    {% for r in broken_reasons %}
-                    <option value="{{ r }}">{{ r|capitalize }}</option>
-                    {% endfor %}
+                    {% for r in broken_reasons %}<option value="{{ r }}">{{ r|capitalize }}</option>{% endfor %}
                 </select>
             </div>
-            <div class="field" id="custom-reason-group" style="display:none;margin-bottom:1rem">
-                <label class="field-label">Omschrijving</label>
-                <input type="text" id="custom_reason" name="custom_reason"
-                       class="field-control" placeholder="bijv. armsteun gebroken…" maxlength="120">
+            <div class="form-group" id="custom-reason-group" style="display:none;margin-bottom:1rem">
+                <label>Omschrijving</label>
+                <input type="text" id="custom_reason" name="custom_reason" placeholder="bijv. armsteun gebroken…" maxlength="120">
             </div>
-            <div class="modal-actions">
-                <button type="button" class="btn btn-ghost" onclick="closeBrokenModal()">Annuleren</button>
-                <button type="submit" class="btn btn-danger">Meld kapot</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-dark" onclick="closeBrokenModal()">Annuleren</button>
+                <button type="submit" class="btn btn-broken">Meld kapot</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- ═══ ONBOARDING ═══ -->
+<!-- CART MODAL (feature 18) -->
+<div class="modal-backdrop" id="cart-modal" hidden>
+    <div class="modal-card">
+        <button class="modal-close" onclick="closeCartModal()">✕</button>
+        <div class="modal-icon">🛒</div>
+        <h2 class="modal-title">Winkelwagen</h2>
+        <p class="modal-desc">Selecteer meerdere stoelen en huur ze één voor één af.</p>
+        <div id="cart-items-list"><p class="cart-empty">Nog niets geselecteerd. Klik op 🛒 bij een vrije stoel.</p></div>
+        <div id="cart-checkout-row" style="display:none">
+            <div class="cart-total"><span>Totaal</span><span id="cart-total">€0.00</span></div>
+            <button class="btn btn-primary btn-full" style="margin-top:.9rem" onclick="cartCheckoutFirst()">Verder betalen →</button>
+        </div>
+        <button class="btn btn-outline-dark btn-sm btn-full" style="margin-top:.75rem" onclick="closeCartModal()">Sluiten</button>
+    </div>
+</div>
+
+<!-- WAITLIST MODAL (feature 20) -->
+<div class="modal-backdrop" id="waitlist-modal" hidden>
+    <div class="modal-card">
+        <button class="modal-close" onclick="document.getElementById('waitlist-modal').setAttribute('hidden','')">✕</button>
+        <div class="modal-icon">🔔</div>
+        <h2 class="modal-title">Wachtlijst</h2>
+        <p class="modal-desc">Stoel <strong id="wl-chair-n">–</strong> is bezet. Je krijgt een melding zodra hij vrijkomt!</p>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-dark" onclick="document.getElementById('waitlist-modal').setAttribute('hidden','')">Annuleren</button>
+            <button type="button" class="btn btn-repair" style="flex:2" id="wl-confirm">🔔 Aanmelden</button>
+        </div>
+    </div>
+</div>
+
+<!-- ONBOARDING (feature 7) -->
 {% if show_onboarding %}
-<div class="modal-backdrop" id="onboarding-modal" aria-modal="true" role="dialog">
-    <div class="modal-panel onboarding-panel">
+<div class="modal-backdrop" id="onboarding-modal">
+    <div class="modal-card" style="max-width:480px;text-align:center;padding:2.5rem 2rem">
         <div class="ob-step is-active" id="ob-step-1">
             <div class="ob-icon">🏖️</div>
             <h2 class="ob-title">Welkom bij ZonneStrand!</h2>
             <p class="ob-text">Je kunt hier eenvoudig een strandstoel huren of reserveren. Laten we je even rondleiden.</p>
-            <button class="btn btn-aqua" onclick="obNext(2)">Volgende →</button>
+            <button class="btn btn-primary" onclick="obNext(2)">Volgende →</button>
         </div>
         <div class="ob-step" id="ob-step-2">
             <div class="ob-icon">🪑</div>
             <h2 class="ob-title">Stoel huren</h2>
-            <p class="ob-text">Klik op een <strong>beschikbare stoel</strong> om hem vandaag te huren via onze veilige checkout. €12,50 of €10,00 afhankelijk van tijdslot.</p>
-            <div class="ob-nav">
-                <button class="btn btn-ghost btn-sm" onclick="obNext(1)">← Terug</button>
-                <button class="btn btn-aqua btn-sm" onclick="obNext(3)">Volgende →</button>
-            </div>
+            <p class="ob-text">Klik op <strong>Huur</strong> bij een groene stoel. Gebruik 🛒 om meerdere stoelen tegelijk te selecteren.</p>
+            <div class="ob-nav"><button class="btn btn-outline-dark btn-sm" onclick="obNext(1)">← Terug</button><button class="btn btn-primary btn-sm" onclick="obNext(3)">Volgende →</button></div>
         </div>
         <div class="ob-step" id="ob-step-3">
             <div class="ob-icon">📅</div>
             <h2 class="ob-title">Vooruit reserveren</h2>
-            <p class="ob-text">Via <strong>Reserveren</strong> in het menu kun je een stoel reserveren voor de komende 14 dagen — zo weet je zeker dat jouw stoel er staat!</p>
-            <div class="ob-nav">
-                <button class="btn btn-ghost btn-sm" onclick="obNext(2)">← Terug</button>
-                <button class="btn btn-aqua btn-sm" onclick="obNext(4)">Volgende →</button>
-            </div>
+            <p class="ob-text">Via <strong>Reserveren</strong> in het menu kun je een stoel reserveren voor de komende 14 dagen.</p>
+            <div class="ob-nav"><button class="btn btn-outline-dark btn-sm" onclick="obNext(2)">← Terug</button><button class="btn btn-primary btn-sm" onclick="obNext(4)">Volgende →</button></div>
         </div>
         <div class="ob-step" id="ob-step-4">
+            <div class="ob-icon">🗺️</div>
+            <h2 class="ob-title">Strandplattegrond</h2>
+            <p class="ob-text">Klik op <strong>Plattegrond</strong> om stoelen visueel op het strand te zien en direct te klikken!</p>
+            <div class="ob-nav"><button class="btn btn-outline-dark btn-sm" onclick="obNext(3)">← Terug</button><button class="btn btn-primary btn-sm" onclick="obNext(5)">Volgende →</button></div>
+        </div>
+        <div class="ob-step" id="ob-step-5">
             <div class="ob-icon">🔔</div>
-            <h2 class="ob-title">Je bent klaar!</h2>
-            <p class="ob-text">Klik op je naam in de navbar voor je profiel en verhuurgeschiedenis. De bel 🔔 laat meldingen zien. Veel strandplezier!</p>
-            <button class="btn btn-coral" onclick="closeOnboarding()">Aan de slag! 🌊</button>
+            <h2 class="ob-title">Klaar!</h2>
+            <p class="ob-text">Klik op je naam voor je profiel. De 🔔 toont meldingen. Staat een stoel bezet? Zet je op de wachtlijst!</p>
+            <button class="btn btn-primary" onclick="closeOnboarding()">Aan de slag! 🌊</button>
         </div>
         <div class="ob-dots">
             <span class="ob-dot is-active" id="dot-1"></span>
             <span class="ob-dot" id="dot-2"></span>
             <span class="ob-dot" id="dot-3"></span>
             <span class="ob-dot" id="dot-4"></span>
+            <span class="ob-dot" id="dot-5"></span>
         </div>
     </div>
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Skeleton → real grid
+setTimeout(() => {
+    document.getElementById('skeleton-grid').style.display = 'none';
+    document.getElementById('chair-grid').style.display = 'grid';
+}, 700);
+
+// Weather (feature 15)
+(async function loadWeather() {
+    try {
+        const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=51.98&longitude=4.10&current=temperature_2m,weather_code&timezone=Europe%2FAmsterdam');
+        const d = await r.json();
+        const temp = Math.round(d.current.temperature_2m);
+        const code = d.current.weather_code;
+        const icons = {0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌦',61:'🌧',71:'❄️',80:'🌦',95:'⛈'};
+        const descs = {0:'Helder',1:'Licht bew.',2:'Bewolkt',3:'Zwaar bew.',45:'Mist',51:'Motregen',61:'Regen',71:'Sneeuw',80:'Buien',95:'Onweer'};
+        const icon = icons[code] || '🌤';
+        const desc = descs[code] || (temp>22?'Warm':'Bewolkt');
+        document.getElementById('w-temp').textContent = temp + '°C';
+        document.getElementById('w-desc').textContent = desc;
+        document.querySelector('#weather-pill .wicon').textContent = icon;
+        document.getElementById('weather-pill').classList.remove('loading');
+    } catch { document.getElementById('weather-pill').style.display='none'; }
+})();
+
+// Kaart (feature 34)
+function toggleKaart() {
+    const s = document.getElementById('kaart-section');
+    const btn = document.getElementById('kaart-btn');
+    const show = s.style.display==='none';
+    s.style.display = show ? 'block' : 'none';
+    btn.textContent = show ? '🗺️ Verberg kaart' : '🗺️ Plattegrond';
+    if(show) s.scrollIntoView({behavior:'smooth'});
+}
+function kaartClick(id, status) {
+    if(status!=='vrij'){window.showToast('Stoel '+id+' is niet beschikbaar.','error');return;}
+    const card=document.getElementById('card-'+id);
+    if(card){card.scrollIntoView({behavior:'smooth',block:'center'});card.classList.add('search-highlight');setTimeout(()=>card.classList.remove('search-highlight'),2200);}
+    document.getElementById('kaart-section').style.display='none';
+    document.getElementById('kaart-btn').textContent='🗺️ Plattegrond';
+}
+
+// Cart (feature 18)
+const cart={};
+function addToCart(id,price){
+    if(cart[id]){window.showToast('Al in winkelwagen.','info');return;}
+    cart[id]={id,price};
+    const card=document.getElementById('card-'+id);
+    if(card){
+        card.classList.add('in-cart');
+        if(!card.querySelector('.cart-badge')){
+            const b=document.createElement('div');b.className='cart-badge';b.textContent='✓';card.appendChild(b);
+        }
+    }
+    updateCartUI();
+    window.showToast('Stoel '+id+' toegevoegd! 🛒','success');
+    if(navigator.vibrate) navigator.vibrate(50); // haptic (31)
+}
+function removeFromCart(id){
+    delete cart[id];
+    const card=document.getElementById('card-'+id);
+    if(card){card.classList.remove('in-cart');card.querySelector('.cart-badge')?.remove();}
+    updateCartUI();
+}
+function updateCartUI(){
+    const keys=Object.keys(cart);
+    const fab=document.getElementById('cart-fab');
+    const cnt=document.getElementById('cart-count');
+    if(fab&&cnt){cnt.textContent=keys.length;fab.classList.toggle('visible',keys.length>0);}
+    const list=document.getElementById('cart-items-list');
+    const row=document.getElementById('cart-checkout-row');
+    const total=document.getElementById('cart-total');
+    if(!list)return;
+    if(!keys.length){list.innerHTML='<p class="cart-empty">Nog niets geselecteerd.</p>';if(row)row.style.display='none';return;}
+    let sum=0,html='';
+    keys.forEach(id=>{sum+=cart[id].price;html+=`<div class="cart-item"><div class="cart-item-info">🪑 Stoel ${id}</div><div style="display:flex;align-items:center;gap:.6rem"><span class="cart-item-price">€${cart[id].price.toFixed(2)}</span><button class="cart-remove" onclick="removeFromCart(${id})">✕</button></div></div>`;});
+    list.innerHTML=html;
+    if(total) total.textContent='€'+sum.toFixed(2);
+    if(row) row.style.display='block';
+}
+function openCartModal(){document.getElementById('cart-modal')?.removeAttribute('hidden');}
+function closeCartModal(){document.getElementById('cart-modal')?.setAttribute('hidden','');}
+function cartCheckoutFirst(){const k=Object.keys(cart);if(!k.length)return;closeCartModal();window.location.href='/checkout/'+k[0];}
+
+// Waitlist (feature 20)
+function joinWaitlist(id){
+    document.getElementById('wl-chair-n').textContent=id;
+    document.getElementById('wl-confirm').onclick=async()=>{
+        try{
+            const fd=new FormData();fd.append('chair_id',id);
+            const res=await fetch('/api/waitlist',{method:'POST',body:fd});
+            const data=await res.json();
+            document.getElementById('waitlist-modal').setAttribute('hidden','');
+            window.showToast(data.ok?'Je staat op de wachtlijst voor stoel '+id+'! 🔔':(data.error||'Fout.'),'success');
+        }catch{window.showToast('Verbindingsfout.','error');}
+    };
+    document.getElementById('waitlist-modal').removeAttribute('hidden');
+}
+</script>
 {% endblock %}

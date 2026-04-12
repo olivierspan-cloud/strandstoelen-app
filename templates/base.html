@@ -3,55 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ZonneStrand{% endblock %}</title>
+    <title>{% block title %}ZonneStrand Verhuur{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700;1,9..144,900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
     {% block head %}{% endblock %}
 </head>
 <body>
 
-<!-- Background canvas -->
-<div class="site-canvas" aria-hidden="true">
-    <div class="canvas-dots"></div>
-    <div class="canvas-arch"></div>
-    <div class="canvas-aqua"></div>
-    <div class="canvas-stripe"></div>
+<div class="ocean-bg" aria-hidden="true">
+    <div class="wave wave1"></div>
+    <div class="wave wave2"></div>
+    <div class="wave wave3"></div>
 </div>
 
 <!-- ═══ NAVBAR ═══ -->
-<header class="site-header" id="site-header">
-    <nav class="navbar">
-        <a href="/" class="nav-brand">
-            <div class="brand-logo">🏖️</div>
-            <div class="brand-wordmark">
-                <span class="brand-name">ZonneStrand</span>
-                <span class="brand-year">Verhuur · 2026</span>
-            </div>
-        </a>
+<nav class="navbar">
+    <a href="/" class="nav-brand">
+        <span class="brand-icon">🏖️</span>
+        <span class="brand-name">ZonneStrand<span class="brand-accent">NL</span></span>
+    </a>
 
-        <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
-            <span></span><span></span><span></span>
-        </button>
+    <button class="nav-hamburger" id="nav-toggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+    </button>
 
-        <div class="nav-links" id="nav-links">
-            <a href="/" class="nav-link {% if request.path=='/' %}is-active{% endif %}">Stoelen</a>
-            {% if session.get('user') %}
-            <a href="/reserveer" class="nav-link {% if request.path=='/reserveer' %}is-active{% endif %}">📅 Reserveren</a>
-            {% endif %}
-            {% if session.get('role') == 'admin' %}
-            <a href="/beheer" class="nav-link {% if request.path=='/beheer' %}is-active{% endif %}">Dashboard</a>
-            {% endif %}
+    <div class="nav-links" id="nav-links">
+        <a href="/" class="nav-link {% if request.path=='/' %}active{% endif %}">🪑 Stoelen</a>
+        {% if session.get('user') %}
+        <a href="/reserveer" class="nav-link {% if request.path=='/reserveer' %}active{% endif %}">📅 Reserveren</a>
+        {% endif %}
+        {% if session.get('role')=='admin' %}
+        <a href="/beheer" class="nav-link {% if request.path=='/beheer' %}active{% endif %}">📊 Dashboard</a>
+        {% endif %}
 
-            <div class="nav-divider"></div>
-
-            <button class="theme-btn" id="theme-btn" aria-label="Thema">
-                <span class="icon-light">☀</span>
-                <span class="icon-dark">☽</span>
+        <div class="nav-right">
+            <button class="dark-toggle" id="dark-toggle" aria-label="Dark mode">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
             </button>
 
             {% if session.get('user') %}
+                <!-- Notification bell -->
                 <div class="notif-wrap" id="notif-wrap">
                     <button class="notif-bell" id="notif-btn" aria-label="Meldingen">
                         🔔
@@ -67,45 +61,42 @@
                         </div>
                     </div>
                 </div>
+
                 <a href="/profiel" class="nav-avatar-btn {% if session.get('role')=='admin' %}is-admin{% endif %}" title="Profiel">
                     <span class="avatar-emoji">{{ session.get('avatar_emoji','🌊') }}</span>
                     <span class="avatar-name">{{ session.get('user') }}</span>
                     {% if session.get('role')=='admin' %}<span class="admin-crown">♛</span>{% endif %}
                 </a>
-                <a href="/logout" class="btn btn-outline-nav btn-sm">Uitloggen</a>
+                <a href="/logout" class="btn btn-outline btn-sm">Uitloggen</a>
             {% else %}
-                <a href="/login" class="btn btn-outline-nav btn-sm">Inloggen</a>
-                <a href="/register" class="btn btn-solid-nav btn-sm">Registreren</a>
+                <a href="/login"    class="btn btn-outline btn-sm">Inloggen</a>
+                <a href="/register" class="btn btn-primary btn-sm">Registreren</a>
             {% endif %}
         </div>
-    </nav>
-</header>
+    </div>
+</nav>
 
 <!-- ═══ TOASTS ═══ -->
-<div class="toast-region" id="toast-region" aria-live="polite">
+<div class="toast-container" id="toast-container">
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}{% for cat, msg in messages %}
-  <div class="toast toast-{{ cat }}">
-    <span class="toast-indicator"></span>
-    <span class="toast-content">{{ msg }}</span>
-    <button class="toast-dismiss" onclick="dismissToast(this.closest('.toast'))">✕</button>
+  <div class="toast toast-{{ cat }}" role="alert">
+    <span class="toast-msg">{{ msg }}</span>
+    <button class="toast-close" onclick="this.closest('.toast').remove()">✕</button>
   </div>
   {% endfor %}{% endif %}
 {% endwith %}
 </div>
 
 <!-- ═══ CONTENT ═══ -->
-<main class="page-main" id="page-main">
+<main class="main-content">
     {% block content %}{% endblock %}
 </main>
 
 <!-- ═══ FOOTER ═══ -->
-<footer class="site-footer">
+<footer class="footer">
     <div class="footer-inner">
-        <div class="footer-left">
-            <strong>ZonneStrand Verhuur</strong>
-            <span>Zomerseizoen 2026</span>
-        </div>
+        <span>🌊 ZonneStrand Verhuur · Seizoen 2026</span>
         <span class="footer-clock" id="live-clock"></span>
     </div>
 </footer>

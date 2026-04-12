@@ -8,6 +8,36 @@
     <p class="ph-sub">Kies een stoel, datum en tijdslot voor de komende 14 dagen.</p>
 </div>
 
+
+<!-- PASSES (feature 19) -->
+<div class="strand-kaart-wrap" style="margin-bottom:1.5rem">
+    <div class="strand-kaart-title">🎟️ Pas kopen — meerdere dagen korting</div>
+    <div class="pass-cards">
+        <div class="pass-card" onclick="selectPass(this,'dag')">
+            <label class="pass-radio"><input type="radio" name="pass" value="dag"></label>
+            <div class="pass-card-icon">🌅</div>
+            <div class="pass-card-name">Dagpas</div>
+            <div class="pass-card-price">€35,00</div>
+            <div class="pass-card-desc">Huurrecht voor alle stoelen op één dag. Geen bijbetaling!</div>
+        </div>
+        <div class="pass-card" onclick="selectPass(this,'week')">
+            <label class="pass-radio"><input type="radio" name="pass" value="week"></label>
+            <div class="pass-card-icon">🌊</div>
+            <div class="pass-card-name">Weekpas</div>
+            <div class="pass-card-price">€180,00</div>
+            <div class="pass-card-desc">7 dagen lang onbeperkt huren. Beste keuze voor vakantie!</div>
+        </div>
+        <div class="pass-card" onclick="selectPass(this,'seizoen')">
+            <label class="pass-radio"><input type="radio" name="pass" value="seizoen"></label>
+            <div class="pass-card-icon">🏖️</div>
+            <div class="pass-card-name">Seizoenpas</div>
+            <div class="pass-card-price">€490,00</div>
+            <div class="pass-card-desc">Het hele zomerseizoen verhuurrecht. Voor de echte strandganger!</div>
+        </div>
+    </div>
+    <p style="font-size:.8rem;color:var(--text-muted);margin-top:.75rem">📞 Neem contact op met de beheerder om een pas te activeren op <strong>strand@zonnestrand.nl</strong></p>
+</div>
+
 <div class="reserveer-layout">
     <div class="res-form-card">
         <h2 class="rfc-title">Nieuwe reservering</h2>

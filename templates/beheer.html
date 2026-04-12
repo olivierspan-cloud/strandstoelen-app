@@ -17,31 +17,31 @@
     <span><strong>Voorbeeldmodus actief</strong> — onderstaande cijfers zijn fictief en dienen ter illustratie.</span>
 </div>
 
-<div class="kpi-row">
-    <div class="kpi-card">
-        <span class="kpi-bg-icon">☀️</span>
-        <span class="kpi-period">Vandaag</span>
-        <span class="kpi-amount" id="kpi-dag">€{{ "%.2f"|format(revenue['day']) }}</span>
+<div class="revenue-grid">
+    <div class="revenue-card">
+        <span class="revenue-icon">☀️</span>
+        <span class="revenue-period">Vandaag</span>
+        <span class="revenue-amount" id="kpi-dag">€{{ "%.2f"|format(revenue['day']) }}</span>
     </div>
-    <div class="kpi-card kpi-accent">
-        <span class="kpi-bg-icon">📅</span>
-        <span class="kpi-period">Deze week</span>
-        <span class="kpi-amount" id="kpi-week">€{{ "%.2f"|format(revenue['week']) }}</span>
+    <div class="revenue-card highlight">
+        <span class="revenue-icon">📅</span>
+        <span class="revenue-period">Deze week</span>
+        <span class="revenue-amount" id="kpi-week">€{{ "%.2f"|format(revenue['week']) }}</span>
     </div>
-    <div class="kpi-card">
-        <span class="kpi-bg-icon">🗓</span>
-        <span class="kpi-period">Deze maand</span>
-        <span class="kpi-amount" id="kpi-maand">€{{ "%.2f"|format(revenue['month']) }}</span>
+    <div class="revenue-card">
+        <span class="revenue-icon">🗓</span>
+        <span class="revenue-period">Deze maand</span>
+        <span class="revenue-amount" id="kpi-maand">€{{ "%.2f"|format(revenue['month']) }}</span>
     </div>
-    <div class="kpi-card kpi-warm">
-        <span class="kpi-bg-icon">🌊</span>
-        <span class="kpi-period">Seizoen</span>
-        <span class="kpi-amount" id="kpi-seizoen">€{{ "%.2f"|format(revenue['season']) }}</span>
+    <div class="revenue-card season">
+        <span class="revenue-icon">🌊</span>
+        <span class="revenue-period">Seizoen</span>
+        <span class="revenue-amount" id="kpi-seizoen">€{{ "%.2f"|format(revenue['season']) }}</span>
     </div>
 </div>
 
 <!-- ══ CONTROLS ══ -->
-<div class="ctrl-row">
+<div class="controls-row">
     <div class="control-card">
         <div>
             <strong>🔓 Altijd verhuurbaar</strong>
@@ -70,8 +70,8 @@
 </div>
 
 <!-- ══ CHAIR STATUS BAR ══ -->
-<div class="section-card">
-    <h2 class="section-heading">Stoeloverzicht</h2>
+<div class="beheer-section">
+    <h2 class="section-title">Stoeloverzicht</h2>
     <div class="occ-stats-row">
         <div class="occ-pill s-vrij">
             <span class="occ-pill-n">{{ stats['vrij'] }}</span><span>Vrij</span>
@@ -97,8 +97,8 @@
 </div>
 
 <!-- ══ CHARTS ══ -->
-<div class="section-card">
-    <h2 class="section-heading">Inkomsten &amp; verhuren</h2>
+<div class="beheer-section">
+    <h2 class="section-title">Inkomsten &amp; verhuren</h2>
     <div class="chart-duo">
         <div class="chart-box">
             <p class="chart-box-label">Inkomsten per dag (€)</p>
@@ -117,10 +117,10 @@
 
 <!-- ══ BROKEN CHAIRS ══ -->
 {% if broken_chairs %}
-<div class="section-card">
-    <h2 class="section-heading">🔧 Kapotte stoelen <span class="count-badge">{{ broken_chairs|length }}</span></h2>
-    <div class="dtable-wrap">
-        <table class="dtable">
+<div class="beheer-section">
+    <h2 class="section-title">🔧 Kapotte stoelen <span class="count-badge">{{ broken_chairs|length }}</span></h2>
+    <div class="table-wrap">
+        <table class="data-table">
             <thead>
                 <tr><th>Stoel</th><th>Reden</th><th>Status</th><th>Actie</th></tr>
             </thead>
@@ -128,7 +128,7 @@
             {% for c in broken_chairs %}
             <tr>
                 <td><strong>#{{ c['id'] }}</strong></td>
-                <td class="td-dim">{{ c['repair_reason'] or '—' }}</td>
+                <td class="data-table muted">{{ c['repair_reason'] or '—' }}</td>
                 <td>
                     <span class="repair-tag rt-{{ c['repair_status'] or 'kapot' }}">
                         {% if c['repair_status']=='in_reparatie' %}🛠 In reparatie
@@ -155,21 +155,21 @@
 {% endif %}
 
 <!-- ══ RECENT RENTALS ══ -->
-<div class="section-card">
-    <h2 class="section-heading">Recente verhuren</h2>
+<div class="beheer-section">
+    <h2 class="section-title">Recente verhuren</h2>
     {% if recent %}
-    <div class="dtable-wrap">
-        <table class="dtable">
+    <div class="table-wrap">
+        <table class="data-table">
             <thead><tr><th>#</th><th>Stoel</th><th>Klant</th><th>Slot</th><th>Bedrag</th><th>Datum</th></tr></thead>
             <tbody>
             {% for r in recent %}
             <tr>
-                <td class="td-dim">{{ r['id'] }}</td>
+                <td class="data-table muted">{{ r['id'] }}</td>
                 <td><strong>#{{ r['chair_id'] }}</strong></td>
                 <td>{{ r['rented_by'] or '—' }}</td>
                 <td><span class="slot-tag">{{ r['time_slot'] or '—' }}</span></td>
-                <td class="amount-txt">€{{ "%.2f"|format(r['price']) }}</td>
-                <td class="td-dim">{{ r['date'] }}</td>
+                <td class="data-table amount">€{{ "%.2f"|format(r['price']) }}</td>
+                <td class="data-table muted">{{ r['date'] }}</td>
             </tr>
             {% endfor %}
             </tbody>
@@ -372,8 +372,8 @@ document.getElementById('always-open-btn')?.addEventListener('click', async func
 </script>
 
 <!-- ── HEATMAP SECTION (feature 6) ── -->
-<div class="section-card" style="margin-top:1.5rem">
-    <div class="section-heading">
+<div class="beheer-section" style="margin-top:1.5rem">
+    <div class="section-title">
         <div class="section-heading-left">🔥 Drukste uren van de dag</div>
     </div>
     <p style="font-size:.85rem;color:var(--text-tertiary);margin-bottom:1rem">
@@ -386,25 +386,25 @@ document.getElementById('always-open-btn')?.addEventListener('click', async func
 
 <!-- ── RESERVATIONS OVERVIEW ── -->
 {% if all_reservations %}
-<div class="section-card" style="margin-top:1.5rem">
-    <div class="section-heading">
+<div class="beheer-section" style="margin-top:1.5rem">
+    <div class="section-title">
         <div class="section-heading-left">📅 Reserveringen overzicht</div>
         <span class="ps-count" style="font-size:.78rem;color:var(--text-tertiary);background:var(--surface-alt);padding:.2rem .65rem;border-radius:999px;border:1px solid var(--border)">
             {{ all_reservations|length }}
         </span>
     </div>
-    <div class="dtable-wrap">
-        <table class="dtable">
+    <div class="table-wrap">
+        <table class="data-table">
             <thead><tr><th>Stoel</th><th>Datum</th><th>Tijdslot</th><th>Prijs</th><th>Gereserveerd door</th><th>Aangemaakt</th></tr></thead>
             <tbody>
             {% for r in all_reservations %}
             <tr>
                 <td><strong>#{{ r['chair_id'] }}</strong></td>
                 <td>{{ r['date'] }}</td>
-                <td><span class="slot-badge">{{ r['time_slot'] }}</span></td>
-                <td class="amount-txt">€{{ "%.2f"|format(r['price']|float) }}</td>
+                <td><span class="slot-tag">{{ r['time_slot'] }}</span></td>
+                <td class="data-table amount">€{{ "%.2f"|format(r['price']|float) }}</td>
                 <td>{{ r['reserved_by'] }}</td>
-                <td class="td-dim">{{ r['created_at'][:16] }}</td>
+                <td class="data-table muted">{{ r['created_at'][:16] }}</td>
             </tr>
             {% endfor %}
             </tbody>

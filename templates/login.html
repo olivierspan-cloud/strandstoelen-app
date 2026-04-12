@@ -3,54 +3,37 @@
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inloggen – ZonneStrand</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700;1,9..144,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
-<div class="auth-page">
-    <!-- Visual side -->
-    <div class="auth-visual">
-        <div class="av-bg"></div>
-        <div class="av-pattern"></div>
-        <div class="av-content">
-            <div class="av-big-text">
-                Jouw<span>perfecte</span>stranddag
-            </div>
-            <p class="av-tagline">Huur een comfortabele strandstoel direct aan het water. Reserveer vooruit of huur ter plekke.</p>
-            <div class="av-dots">
-                <div class="av-dot active"></div>
-                <div class="av-dot"></div>
-                <div class="av-dot"></div>
-            </div>
+<body class="auth-page">
+<div class="ocean-bg" aria-hidden="true">
+    <div class="wave wave1"></div><div class="wave wave2"></div><div class="wave wave3"></div>
+</div>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-icon">🏖️</div>
+            <h1 class="auth-title">ZonneStrand<span class="brand-accent">NL</span></h1>
+            <p class="auth-subtitle">Verhuur systeem · Seizoen 2026</p>
         </div>
-    </div>
-    <!-- Form side -->
-    <div class="auth-form-side">
-        <div class="auth-form-box">
-            <a href="/" class="auth-back-link">← Terug naar overzicht</a>
-            <p class="auth-eyebrow">ZonneStrand Verhuur 2026</p>
-            <h1 class="auth-heading">Welkom<br><em>terug</em></h1>
-            <p class="auth-subheading">Log in om stoelen te huren en reserveringen te beheren.</p>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}{% for cat, msg in messages %}
-              <div class="alert alert-{{ cat }}">{{ msg }}</div>
-              {% endfor %}{% endif %}
-            {% endwith %}
-            <form method="POST" class="auth-form-fields">
-                <div class="field">
-                    <label class="field-label">Gebruikersnaam</label>
-                    <input type="text" name="username" class="field-control" placeholder="Jouw naam" required autofocus>
-                </div>
-                <div class="field">
-                    <label class="field-label">Wachtwoord</label>
-                    <input type="password" name="password" class="field-control" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="btn btn-aqua btn-full btn-lg" style="margin-top:.5rem">
-                    Inloggen →
-                </button>
-            </form>
-            <p class="auth-switch">Nog geen account? <a href="/register">Registreer gratis</a></p>
-        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}{% for cat, msg in messages %}
+          <div class="inline-alert alert-{{ cat }}">{{ msg }}</div>
+          {% endfor %}{% endif %}
+        {% endwith %}
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label>Gebruikersnaam</label>
+                <input type="text" name="username" placeholder="Jouw gebruikersnaam" required autofocus>
+            </div>
+            <div class="form-group">
+                <label>Wachtwoord</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full" style="margin-top:.5rem">Inloggen →</button>
+        </form>
+        <p class="auth-switch">Nog geen account? <a href="/register">Registreren</a></p>
     </div>
 </div>
 <script src="/static/script.js"></script>
