@@ -1,29 +1,24 @@
 {% extends "base.html" %}
 {% block title %}Mijn profiel – ZonneStrand{% endblock %}
-
 {% block content %}
 <div class="profile-page">
 
-    <!-- ── HERO CARD ── -->
+    <!-- Hero card — dark midnight -->
     <div class="profile-hero-card">
-        <div class="phc-backdrop" aria-hidden="true">
-            <svg class="phc-wave" viewBox="0 0 800 120" preserveAspectRatio="none">
-                <path d="M0,60 C100,20 200,100 400,60 C600,20 700,100 800,60 L800,120 L0,120Z" fill="currentColor"/>
-            </svg>
-        </div>
+        <div class="phc-backdrop" aria-hidden="true"></div>
 
         <div class="profile-avatar-wrap">
             <div class="profile-avatar" id="current-avatar" title="Klik om te wijzigen">
-                <span class="avatar-display" id="avatar-display">{{ avatars[avatar] }}</span>
+                <span id="avatar-display">{{ avatars[avatar] }}</span>
                 <div class="avatar-edit-overlay"><span>✎</span></div>
             </div>
-            <span class="avatar-hint">Klik om avatar te wijzigen</span>
+            <span class="avatar-hint">Klik om te wijzigen</span>
         </div>
 
         <div class="profile-info">
             <h1 class="profile-username">{{ user }}</h1>
-            <div class="profile-role-tag {% if role == 'admin' %}tag-admin{% else %}tag-user{% endif %}">
-                {% if role == 'admin' %}♛ Beheerder{% else %}🌊 Strandgast{% endif %}
+            <div class="profile-role-tag {% if role=='admin' %}tag-admin{% else %}tag-user{% endif %}">
+                {% if role=='admin' %}♛ Beheerder{% else %}🌊 Strandgast{% endif %}
             </div>
         </div>
 
@@ -35,7 +30,7 @@
             <div class="phs-divider"></div>
             <div class="phs-item">
                 <span class="phs-val">€{{ "%.2f"|format(stats.total_spent|float) }}</span>
-                <span class="phs-lbl">Totaal</span>
+                <span class="phs-lbl">Uitgegeven</span>
             </div>
             <div class="phs-divider"></div>
             <div class="phs-item">
@@ -50,25 +45,23 @@
         </div>
     </div>
 
-    <!-- ── AVATAR PICKER ── -->
+    <!-- Avatar picker -->
     <div class="avatar-picker-panel" id="avatar-picker" hidden>
         <div class="app-header">
             <h2 class="app-title">Kies jouw avatar</h2>
-            <button class="app-close" id="close-picker" aria-label="Sluiten">✕</button>
+            <button class="app-close" id="close-picker">✕</button>
         </div>
         <div class="avatar-grid">
             {% for key, emoji in avatars.items() %}
-            <button class="avatar-option {% if key == avatar %}is-selected{% endif %}"
+            <button class="avatar-option {% if key==avatar %}is-selected{% endif %}"
                     data-key="{{ key }}" data-emoji="{{ emoji }}"
-                    title="{{ key|replace('_',' ')|capitalize }}">
-                {{ emoji }}
-            </button>
+                    title="{{ key|replace('_',' ')|capitalize }}">{{ emoji }}</button>
             {% endfor %}
         </div>
-        <p class="app-note">Klik op een avatar om deze op te slaan.</p>
+        <p class="app-note">Klik op een avatar — wordt direct opgeslagen.</p>
     </div>
 
-    <!-- ── UPCOMING RESERVATIONS ── -->
+    <!-- Upcoming reservations -->
     {% if reservations %}
     <div class="profile-section">
         <div class="ps-header">
@@ -99,16 +92,16 @@
     </div>
     {% endif %}
 
-    <!-- ── RENTAL HISTORY ── -->
+    <!-- Rental history -->
     <div class="profile-section">
         <div class="ps-header">
             <h2 class="ps-title">Verhuurgeschiedenis</h2>
-            <span class="ps-count">{{ stats.total_rentals }} verhuren</span>
+            <span class="ps-count">{{ stats.total_rentals }}</span>
         </div>
         {% if rentals %}
         <div class="ps-table-wrap">
             <table class="ps-table">
-                <thead><tr><th>Stoel</th><th>Tijdslot</th><th>Bedrag</th><th>Datum &amp; tijd</th></tr></thead>
+                <thead><tr><th>Stoel</th><th>Tijdslot</th><th>Bedrag</th><th>Datum</th></tr></thead>
                 <tbody>
                 {% for r in rentals %}
                 <tr>
@@ -124,18 +117,16 @@
         {% else %}
         <div class="ps-empty">
             <div class="ps-empty-icon">🏖️</div>
-            <p>Je hebt nog geen stoelen gehuurd.</p>
-            <a href="/" class="btn btn-primary mt-1">Bekijk beschikbare stoelen →</a>
+            <p>Nog geen verhuren.</p>
+            <a href="/" class="btn btn-aqua mt-1">Bekijk stoelen →</a>
         </div>
         {% endif %}
     </div>
 
-    <!-- ── RECENT NOTIFICATIONS ── -->
+    <!-- Notifications -->
     {% if notifications %}
     <div class="profile-section">
-        <div class="ps-header">
-            <h2 class="ps-title">🔔 Recente meldingen</h2>
-        </div>
+        <div class="ps-header"><h2 class="ps-title">🔔 Meldingen</h2></div>
         <div class="notif-list-profile">
             {% for n in notifications %}
             <div class="nlp-item nlp-{{ n['type'] }}">
@@ -147,40 +138,32 @@
     </div>
     {% endif %}
 
-    <!-- ── CHANGE PASSWORD (feature 5) ── -->
+    <!-- Change password -->
     <div class="profile-section">
-        <div class="ps-header">
-            <h2 class="ps-title">🔒 Wachtwoord wijzigen</h2>
-        </div>
+        <div class="ps-header"><h2 class="ps-title">🔒 Wachtwoord wijzigen</h2></div>
         <form method="POST" action="/profiel/wachtwoord" class="pw-form">
             <div class="field">
                 <label class="field-label">Huidig wachtwoord</label>
-                <input type="password" name="current_password" class="field-control"
-                       placeholder="••••••••" required>
+                <input type="password" name="current_password" class="field-control" placeholder="••••••••" required>
             </div>
             <div class="field-row">
                 <div class="field">
                     <label class="field-label">Nieuw wachtwoord</label>
-                    <input type="password" name="new_password" class="field-control"
-                           placeholder="Min. 4 tekens" required minlength="4">
+                    <input type="password" name="new_password" class="field-control" placeholder="Min. 4 tekens" required minlength="4">
                 </div>
                 <div class="field">
                     <label class="field-label">Bevestig nieuw</label>
-                    <input type="password" name="confirm_password" class="field-control"
-                           placeholder="Herhaal nieuw" required>
+                    <input type="password" name="confirm_password" class="field-control" placeholder="Herhaal" required>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:.5rem">
-                Wachtwoord opslaan
-            </button>
+            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:.25rem">Opslaan</button>
         </form>
     </div>
 
     <div class="profile-footer-nav">
-        <a href="/" class="btn btn-subtle">← Terug naar overzicht</a>
-        <a href="/reserveer" class="btn btn-primary">Nieuwe reservering →</a>
+        <a href="/" class="btn btn-ghost">← Overzicht</a>
+        <a href="/reserveer" class="btn btn-aqua">Nieuwe reservering →</a>
     </div>
-
 </div>
 {% endblock %}
 
@@ -192,28 +175,26 @@ const navEmoji      = document.querySelector(".nav-avatar-btn .avatar-emoji");
 
 document.getElementById("current-avatar").addEventListener("click", () => {
     picker.removeAttribute("hidden");
-    picker.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    picker.scrollIntoView({ behavior:"smooth", block:"nearest" });
 });
-document.getElementById("close-picker").addEventListener("click", () => {
-    picker.setAttribute("hidden", "");
-});
+document.getElementById("close-picker").addEventListener("click", () => picker.setAttribute("hidden",""));
 
 document.querySelectorAll(".avatar-option").forEach(btn => {
     btn.addEventListener("click", async () => {
         const key = btn.dataset.key, emoji = btn.dataset.emoji;
-        const fd  = new FormData(); fd.append("avatar", key);
+        const fd = new FormData(); fd.append("avatar", key);
         try {
-            const res  = await fetch("/profiel/avatar", { method: "POST", body: fd });
+            const res = await fetch("/profiel/avatar", { method:"POST", body:fd });
             const data = await res.json();
             if (data.ok) {
                 avatarDisplay.textContent = emoji;
                 if (navEmoji) navEmoji.textContent = emoji;
                 document.querySelectorAll(".avatar-option").forEach(b => b.classList.remove("is-selected"));
                 btn.classList.add("is-selected");
-                picker.setAttribute("hidden", "");
+                picker.setAttribute("hidden","");
                 window.showToast("Avatar opgeslagen! " + emoji, "success");
             }
-        } catch { window.showToast("Kon avatar niet opslaan.", "error"); }
+        } catch { window.showToast("Fout bij opslaan.", "error"); }
     });
 });
 </script>

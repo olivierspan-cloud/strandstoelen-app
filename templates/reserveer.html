@@ -3,30 +3,26 @@
 {% block content %}
 
 <div class="page-header">
-    <div class="ph-eyebrow">📅 Reserveringen</div>
-    <h1 class="ph-title">Reserveer een strandstoel</h1>
+    <p class="ph-eyebrow">📅 Reserveringen</p>
+    <h1 class="ph-title">Reserveer een<br><em>strandstoel</em></h1>
     <p class="ph-sub">Kies een stoel, datum en tijdslot voor de komende 14 dagen.</p>
 </div>
 
 <div class="reserveer-layout">
-
-    <!-- ─ FORM ─ -->
     <div class="res-form-card">
         <h2 class="rfc-title">Nieuwe reservering</h2>
         <form method="POST" action="/reserveer" class="res-form">
-
             <div class="field">
                 <label class="field-label">Stoelnummer</label>
                 <select name="chair_id" class="field-control" required>
                     <option value="" disabled selected>— Kies een stoel —</option>
                     {% for chair in chairs %}
-                    {% if chair['status'] == 'vrij' %}
+                    {% if chair['status']=='vrij' %}
                     <option value="{{ chair['id'] }}">Stoel {{ chair['id'] }}</option>
                     {% endif %}
                     {% endfor %}
                 </select>
             </div>
-
             <div class="field">
                 <label class="field-label">Datum</label>
                 <select name="res_date" class="field-control" required>
@@ -36,9 +32,8 @@
                     {% endfor %}
                 </select>
             </div>
-
             <div class="field">
-                <label class="field-label">Tijdslot &amp; prijs</label>
+                <label class="field-label">Tijdslot & prijs</label>
                 <div class="slot-options">
                     {% for slot, price in time_slots %}
                     <label class="slot-option">
@@ -51,14 +46,12 @@
                     {% endfor %}
                 </div>
             </div>
-
-            <button type="submit" class="btn btn-primary btn-full btn-lg">
-                Reservering bevestigen →
+            <button type="submit" class="btn btn-aqua btn-full btn-lg">
+                Bevestig reservering →
             </button>
         </form>
     </div>
 
-    <!-- ─ INFO ─ -->
     <div class="res-info">
         <div class="res-info-card">
             <div class="ric-icon">💡</div>
@@ -85,5 +78,4 @@
         </div>
     </div>
 </div>
-
 {% endblock %}

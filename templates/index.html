@@ -2,60 +2,83 @@
 {% block title %}Stoelen – ZonneStrand{% endblock %}
 {% block content %}
 
-<!-- HERO -->
+<!-- ═══ HERO ═══ -->
 <section class="hero-section">
-    <div class="hero-eyebrow">Zomerseizoen 2026</div>
-    <h1 class="hero-display">Jouw perfecte<br><em>stranddag</em> begint hier</h1>
-    <p class="hero-lead">
-        {% if always_open %}
-            <span class="status-pill pill-open">🔓 Altijd verhuurbaar (override aan)</span>
-        {% elif current_price %}
-            <span class="status-pill pill-open">🟢 Open — €{{ "%.2f"|format(current_price|float) }} · {{ current_slot }}</span>
-        {% else %}
-            <span class="status-pill pill-closed">🔴 Gesloten — verhuur 10:00–18:00</span>
-        {% endif %}
-    </p>
-    <div class="stat-row">
-        <div class="stat-card s-vrij">
-            <span class="stat-val" id="stat-vrij">{{ stats.vrij }}</span>
-            <span class="stat-lbl">Beschikbaar</span>
+    <div class="hero-grid">
+        <div class="hero-left">
+            <div class="hero-tag">Strandverhuur 2026</div>
+            <h1 class="hero-title">
+                <span>Jouw</span>
+                <span class="line-italic">perfecte</span>
+                <span class="line-outline">stranddag</span>
+            </h1>
         </div>
-        <div class="stat-card s-bezet">
-            <span class="stat-val" id="stat-bezet">{{ stats.bezet }}</span>
-            <span class="stat-lbl">Verhuurd</span>
+        <div class="hero-right">
+            <div class="hero-status-block">
+                <div class="hsb-label">Status verhuur</div>
+                {% if always_open %}
+                    <div class="hsb-status"><span class="hsb-dot open"></span>Altijd open</div>
+                    <div class="hsb-price">Override actief</div>
+                {% elif current_price %}
+                    <div class="hsb-status"><span class="hsb-dot open"></span>Open</div>
+                    <div class="hsb-price">€{{ "%.2f"|format(current_price|float) }} · {{ current_slot }}</div>
+                {% else %}
+                    <div class="hsb-status"><span class="hsb-dot closed"></span>Gesloten</div>
+                    <div class="hsb-price">Verhuur 10:00 – 18:00</div>
+                {% endif %}
+            </div>
         </div>
-        <div class="stat-card s-kapot">
-            <span class="stat-val" id="stat-kapot">{{ stats.kapot }}</span>
-            <span class="stat-lbl">Niet beschikbaar</span>
+    </div>
+
+    <!-- Stat strip -->
+    <div class="stat-strip">
+        <div class="stat-item">
+            <span class="stat-num vrij" id="stat-vrij">{{ stats.vrij }}</span>
+            <div class="stat-info">
+                <span class="stat-label">Beschikbaar</span>
+                <div class="stat-bar"><div class="stat-bar-fill fill-vrij" style="width:{{ (stats.vrij/50*100)|round }}%"></div></div>
+            </div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num bezet" id="stat-bezet">{{ stats.bezet }}</span>
+            <div class="stat-info">
+                <span class="stat-label">Verhuurd</span>
+                <div class="stat-bar"><div class="stat-bar-fill fill-bezet" style="width:{{ (stats.bezet/50*100)|round }}%"></div></div>
+            </div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num kapot" id="stat-kapot">{{ stats.kapot }}</span>
+            <div class="stat-info">
+                <span class="stat-label">Niet beschikbaar</span>
+                <div class="stat-bar"><div class="stat-bar-fill fill-kapot" style="width:{{ (stats.kapot/50*100)|round }}%"></div></div>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- CONTROLS BAR -->
+<!-- ═══ CONTROLS ═══ -->
 <div class="controls-bar">
     <div class="filter-set">
-        <span class="filter-label">Toon:</span>
+        <span class="filter-label">Filter:</span>
         <button class="filt is-active" data-filter="all">Alle 50</button>
-        <button class="filt" data-filter="vrij">🟢 Vrij</button>
-        <button class="filt" data-filter="bezet">🟠 Bezet</button>
-        <button class="filt" data-filter="kapot">🔴 Kapot</button>
+        <button class="filt" data-filter="vrij">Vrij</button>
+        <button class="filt" data-filter="bezet">Bezet</button>
+        <button class="filt" data-filter="kapot">Kapot</button>
     </div>
-    <!-- Search bar (feature 8) -->
     <div class="chair-search-wrap">
         <input type="number" id="chair-search" class="chair-search-input"
-               placeholder="🔍 Stoelnummer…" min="1" max="50"
-               aria-label="Zoek op stoelnummer">
-        <button class="chair-search-clear" id="search-clear" style="display:none" aria-label="Wis zoekopdracht">✕</button>
+               placeholder="🔍 Stoelnr…" min="1" max="50" aria-label="Zoek stoelnummer">
+        <button class="chair-search-clear" id="search-clear" style="display:none">✕</button>
     </div>
     <div class="controls-end">
         {% if role == 'admin' %}
         <a href="/free-all" class="btn btn-eod btn-sm"
-           data-confirm="Alle bezette stoelen vrijmaken? (Einde dag)">🌅 Einde dag</a>
+           data-confirm="Alle bezette stoelen vrijmaken?">🌅 Einde dag</a>
         {% endif %}
     </div>
 </div>
 
-<!-- CHAIR GRID -->
+<!-- ═══ CHAIR GRID ═══ -->
 <div class="chair-grid" id="chair-grid">
 {% for chair in chairs %}
 {% set cid    = chair['id'] %}
@@ -73,62 +96,56 @@
     </div>
 
     <div class="cc-icon">
-        {% if status == 'vrij' %}🪑
-        {% elif status == 'bezet' %}👤
-        {% elif status == 'in_reparatie' %}🛠
+        {% if status=='vrij' %}🪑
+        {% elif status=='bezet' %}👤
+        {% elif status=='in_reparatie' %}🛠
         {% else %}🔧{% endif %}
     </div>
 
     <div class="cc-status">
-        {% if status == 'vrij' %}Beschikbaar
-        {% elif status == 'bezet' %}Verhuurd
-        {% elif status == 'in_reparatie' %}In reparatie
+        {% if status=='vrij' %}Beschikbaar
+        {% elif status=='bezet' %}Verhuurd
+        {% elif status=='in_reparatie' %}In reparatie
         {% else %}Kapot{% endif %}
     </div>
 
-    {% if status == 'bezet' and renter %}
-        <div class="cc-renter">{{ renter }}</div>
+    {% if status=='bezet' and renter %}
+    <div class="cc-renter">{{ renter }}</div>
     {% endif %}
     {% if broken and chair['repair_reason'] %}
-        <div class="cc-reason" title="{{ chair['repair_reason'] }}">
-            {{ chair['repair_reason'][:22] }}{% if chair['repair_reason']|length > 22 %}…{% endif %}
-        </div>
+    <div class="cc-reason" title="{{ chair['repair_reason'] }}">
+        {{ chair['repair_reason'][:22] }}{% if chair['repair_reason']|length > 22 %}…{% endif %}
+    </div>
     {% endif %}
 
     <div class="cc-actions">
     {% if user %}
-        {% if status == 'vrij' %}
+        {% if status=='vrij' %}
             {% if current_price %}
-            <a href="/checkout/{{ cid }}" class="btn btn-success btn-xs">
-                Huur · €{{ "%.2f"|format(current_price|float) }}
-            </a>
+            <a href="/checkout/{{ cid }}" class="btn btn-aqua btn-xs">Huur · €{{ "%.2f"|format(current_price|float) }}</a>
             {% else %}
             <span class="cc-closed">Gesloten</span>
             {% endif %}
-            <button class="btn btn-danger btn-xs" onclick="openBrokenModal({{ cid }})" type="button">Kapot melden</button>
-
-        {% elif status == 'bezet' %}
-            {% if user == renter or role == 'admin' %}
-            <a href="/free/{{ cid }}" class="btn btn-warning btn-xs"
+            <button class="btn btn-coral btn-xs" onclick="openBrokenModal({{ cid }})" type="button">Kapot melden</button>
+        {% elif status=='bezet' %}
+            {% if user==renter or role=='admin' %}
+            <a href="/free/{{ cid }}" class="btn btn-gold btn-xs"
                data-confirm="Stoel {{ cid }} terugbrengen?">Terugbrengen</a>
             {% else %}
             <span class="cc-chip chip-bezet">Verhuurd</span>
             {% endif %}
-
         {% elif broken %}
-            {% if role == 'admin' %}
+            {% if role=='admin' %}
             <form class="repair-inline" data-chair-id="{{ cid }}">
                 <select name="repair_status" class="repair-sel">
                     <option value="kapot"        {% if chair['repair_status']=='kapot'        %}selected{% endif %}>Kapot</option>
                     <option value="in_reparatie" {% if chair['repair_status']=='in_reparatie' %}selected{% endif %}>Reparatie</option>
                     <option value="gerepareerd"  {% if chair['repair_status']=='gerepareerd'  %}selected{% endif %}>Klaar</option>
                 </select>
-                <button type="submit" class="btn btn-violet btn-xs">✓</button>
+                <button type="submit" class="btn btn-aqua btn-xs">✓</button>
             </form>
             {% else %}
-            <span class="cc-chip chip-kapot">
-                {{ 'In reparatie' if status == 'in_reparatie' else 'Kapot' }}
-            </span>
+            <span class="cc-chip chip-kapot">{{ 'Reparatie' if status=='in_reparatie' else 'Kapot' }}</span>
             {% endif %}
         {% endif %}
     {% else %}
@@ -139,16 +156,16 @@
 {% endfor %}
 </div>
 
-<!-- BROKEN MODAL -->
+<!-- ═══ BROKEN MODAL ═══ -->
 <div class="modal-backdrop" id="broken-modal" hidden aria-modal="true" role="dialog">
     <div class="modal-panel">
-        <button class="modal-close" onclick="closeBrokenModal()" aria-label="Sluiten">✕</button>
+        <button class="modal-close" onclick="closeBrokenModal()">✕</button>
         <div class="modal-icon">🔧</div>
         <h2 class="modal-title">Kapot melden</h2>
-        <p class="modal-desc">Stoel <strong id="modal-chair-n">–</strong> — beschrijf het probleem</p>
+        <p class="modal-desc">Stoel <strong id="modal-chair-n">–</strong> — wat is er kapot?</p>
         <form method="POST" id="broken-form" action="/broken/0">
             <div class="field" style="margin-bottom:1rem">
-                <label class="field-label">Selecteer een reden</label>
+                <label class="field-label">Reden</label>
                 <select name="reason_choice" id="reason_choice" class="field-control" required>
                     <option value="" disabled selected>— Kies een reden —</option>
                     {% for r in broken_reasons %}
@@ -157,57 +174,52 @@
                 </select>
             </div>
             <div class="field" id="custom-reason-group" style="display:none;margin-bottom:1rem">
-                <label class="field-label">Omschrijf het probleem</label>
+                <label class="field-label">Omschrijving</label>
                 <input type="text" id="custom_reason" name="custom_reason"
                        class="field-control" placeholder="bijv. armsteun gebroken…" maxlength="120">
             </div>
             <div class="modal-actions">
-                <button type="button" class="btn btn-subtle" onclick="closeBrokenModal()">✕ Annuleren</button>
+                <button type="button" class="btn btn-ghost" onclick="closeBrokenModal()">Annuleren</button>
                 <button type="submit" class="btn btn-danger">Meld kapot</button>
             </div>
         </form>
     </div>
 </div>
 
-{% endblock %}
-
-<!-- ONBOARDING MODAL (feature 7) -->
+<!-- ═══ ONBOARDING ═══ -->
 {% if show_onboarding %}
 <div class="modal-backdrop" id="onboarding-modal" aria-modal="true" role="dialog">
     <div class="modal-panel onboarding-panel">
-        <div class="ob-steps">
-            <div class="ob-step is-active" id="ob-step-1">
-                <div class="ob-icon">🏖️</div>
-                <h2 class="ob-title">Welkom bij ZonneStrand!</h2>
-                <p class="ob-text">Je kunt hier eenvoudig een strandstoel huren of reserveren voor een toekomstige dag. Laten we je snel rondleiden.</p>
-                <button class="btn btn-primary" onclick="obNext(2)">Volgende →</button>
-            </div>
-            <div class="ob-step" id="ob-step-2">
-                <div class="ob-icon">🪑</div>
-                <h2 class="ob-title">Stoel huren</h2>
-                <p class="ob-text">Klik op een <strong>groene stoel</strong> om hem vandaag te huren. Je betaalt via ons veilige checkout-formulier. Huurprijs: €12,50 of €10,00 afhankelijk van het tijdslot.</p>
-                <div class="ob-nav">
-                    <button class="btn btn-subtle btn-sm" onclick="obNext(1)">← Terug</button>
-                    <button class="btn btn-primary btn-sm" onclick="obNext(3)">Volgende →</button>
-                </div>
-            </div>
-            <div class="ob-step" id="ob-step-3">
-                <div class="ob-icon">📅</div>
-                <h2 class="ob-title">Reserveren</h2>
-                <p class="ob-text">Via <strong>Reserveren</strong> in het menu kun je een stoel reserveren voor de komende 14 dagen. Handig als je zeker wilt zijn van je plek!</p>
-                <div class="ob-nav">
-                    <button class="btn btn-subtle btn-sm" onclick="obNext(2)">← Terug</button>
-                    <button class="btn btn-primary btn-sm" onclick="obNext(4)">Volgende →</button>
-                </div>
-            </div>
-            <div class="ob-step" id="ob-step-4">
-                <div class="ob-icon">🔔</div>
-                <h2 class="ob-title">Klaar!</h2>
-                <p class="ob-text">Je ontvangt meldingen via de 🔔 bel in de navigatiebalk. Klik op je naam om je profiel, avatar en verhuurgeschiedenis te bekijken. Veel plezier!</p>
-                <button class="btn btn-primary" onclick="closeOnboarding()">Aan de slag! 🌊</button>
+        <div class="ob-step is-active" id="ob-step-1">
+            <div class="ob-icon">🏖️</div>
+            <h2 class="ob-title">Welkom bij ZonneStrand!</h2>
+            <p class="ob-text">Je kunt hier eenvoudig een strandstoel huren of reserveren. Laten we je even rondleiden.</p>
+            <button class="btn btn-aqua" onclick="obNext(2)">Volgende →</button>
+        </div>
+        <div class="ob-step" id="ob-step-2">
+            <div class="ob-icon">🪑</div>
+            <h2 class="ob-title">Stoel huren</h2>
+            <p class="ob-text">Klik op een <strong>beschikbare stoel</strong> om hem vandaag te huren via onze veilige checkout. €12,50 of €10,00 afhankelijk van tijdslot.</p>
+            <div class="ob-nav">
+                <button class="btn btn-ghost btn-sm" onclick="obNext(1)">← Terug</button>
+                <button class="btn btn-aqua btn-sm" onclick="obNext(3)">Volgende →</button>
             </div>
         </div>
-        <!-- Progress dots -->
+        <div class="ob-step" id="ob-step-3">
+            <div class="ob-icon">📅</div>
+            <h2 class="ob-title">Vooruit reserveren</h2>
+            <p class="ob-text">Via <strong>Reserveren</strong> in het menu kun je een stoel reserveren voor de komende 14 dagen — zo weet je zeker dat jouw stoel er staat!</p>
+            <div class="ob-nav">
+                <button class="btn btn-ghost btn-sm" onclick="obNext(2)">← Terug</button>
+                <button class="btn btn-aqua btn-sm" onclick="obNext(4)">Volgende →</button>
+            </div>
+        </div>
+        <div class="ob-step" id="ob-step-4">
+            <div class="ob-icon">🔔</div>
+            <h2 class="ob-title">Je bent klaar!</h2>
+            <p class="ob-text">Klik op je naam in de navbar voor je profiel en verhuurgeschiedenis. De bel 🔔 laat meldingen zien. Veel strandplezier!</p>
+            <button class="btn btn-coral" onclick="closeOnboarding()">Aan de slag! 🌊</button>
+        </div>
         <div class="ob-dots">
             <span class="ob-dot is-active" id="dot-1"></span>
             <span class="ob-dot" id="dot-2"></span>
@@ -217,3 +229,5 @@
     </div>
 </div>
 {% endif %}
+
+{% endblock %}

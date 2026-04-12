@@ -3,42 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ZonneStrand Verhuur{% endblock %}</title>
+    <title>{% block title %}ZonneStrand{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700;1,9..144,900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
     {% block head %}{% endblock %}
 </head>
 <body>
 
-<div class="grain" aria-hidden="true"></div>
-<div class="sun-glow" aria-hidden="true"></div>
-
-<!-- Animated dune waves -->
-<div class="dune-bg" aria-hidden="true">
-    <svg class="dune-1" viewBox="0 0 1440 180" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,90 C180,40 360,140 540,90 C720,40 900,130 1080,80 C1260,30 1350,110 1440,90 L1440,180 L0,180 Z"
-              fill="rgba(212,184,150,.18)"/>
-    </svg>
-    <svg class="dune-2" viewBox="0 0 1440 180" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,110 C200,60 400,150 600,100 C800,50 1000,140 1200,90 C1320,60 1400,120 1440,110 L1440,180 L0,180 Z"
-              fill="rgba(180,154,120,.14)"/>
-    </svg>
-    <svg class="dune-3" viewBox="0 0 1440 180" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,130 C240,90 480,160 720,120 C960,80 1200,150 1440,130 L1440,180 L0,180 Z"
-              fill="rgba(140,110,80,.1)"/>
-    </svg>
+<!-- Background canvas -->
+<div class="site-canvas" aria-hidden="true">
+    <div class="canvas-dots"></div>
+    <div class="canvas-arch"></div>
+    <div class="canvas-aqua"></div>
+    <div class="canvas-stripe"></div>
 </div>
 
 <!-- ═══ NAVBAR ═══ -->
 <header class="site-header" id="site-header">
     <nav class="navbar">
         <a href="/" class="nav-brand">
-            <div class="brand-emblem">🏖️</div>
-            <div class="brand-text">
+            <div class="brand-logo">🏖️</div>
+            <div class="brand-wordmark">
                 <span class="brand-name">ZonneStrand</span>
-                <span class="brand-sub">Strandverhuur 2026</span>
+                <span class="brand-year">Verhuur · 2026</span>
             </div>
         </a>
 
@@ -55,9 +44,9 @@
             <a href="/beheer" class="nav-link {% if request.path=='/beheer' %}is-active{% endif %}">Dashboard</a>
             {% endif %}
 
-            <div class="nav-sep"></div>
+            <div class="nav-divider"></div>
 
-            <button class="theme-btn" id="theme-btn" aria-label="Thema wisselen">
+            <button class="theme-btn" id="theme-btn" aria-label="Thema">
                 <span class="icon-light">☀</span>
                 <span class="icon-dark">☽</span>
             </button>
@@ -78,14 +67,14 @@
                         </div>
                     </div>
                 </div>
-                <a href="/profiel" class="nav-avatar-btn {% if session.get('role')=='admin' %}is-admin{% endif %}" title="Mijn profiel">
+                <a href="/profiel" class="nav-avatar-btn {% if session.get('role')=='admin' %}is-admin{% endif %}" title="Profiel">
                     <span class="avatar-emoji">{{ session.get('avatar_emoji','🌊') }}</span>
                     <span class="avatar-name">{{ session.get('user') }}</span>
                     {% if session.get('role')=='admin' %}<span class="admin-crown">♛</span>{% endif %}
                 </a>
                 <a href="/logout" class="btn btn-outline-nav btn-sm">Uitloggen</a>
             {% else %}
-                <a href="/login"    class="btn btn-outline-nav btn-sm">Inloggen</a>
+                <a href="/login" class="btn btn-outline-nav btn-sm">Inloggen</a>
                 <a href="/register" class="btn btn-solid-nav btn-sm">Registreren</a>
             {% endif %}
         </div>
@@ -105,7 +94,7 @@
 {% endwith %}
 </div>
 
-<!-- ═══ PAGE ═══ -->
+<!-- ═══ CONTENT ═══ -->
 <main class="page-main" id="page-main">
     {% block content %}{% endblock %}
 </main>
